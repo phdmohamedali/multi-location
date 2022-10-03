@@ -94,13 +94,15 @@ function details($pickup_location_term)
 // show address in below local-pickup selection on checkout page -codeend
 
 // ajax call back and hook to show local pickup address on checkout page -codeinit
-add_action('wp_ajax_show_address',  'wcmlim_show_address_on_checkout');
-add_action('wp_ajax_nopriv_show_address', 'wcmlim_show_address_on_checkout');
+add_action('wp_ajax_wcmlim_show_address',  'wcmlim_show_address_on_checkout');
+add_action('wp_ajax_nopriv_wcmlim_show_address', 'wcmlim_show_address_on_checkout');
 function wcmlim_show_address_on_checkout()
     {
       $term_id = sanitize_text_field($_POST['location_id']);
       $terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
       foreach ($terms as $key => $term) {
+
+        $location_name = $term->name;
         if ($term_id == $term->term_id) {
           $street_address = get_term_meta(
             $term_id,
@@ -132,6 +134,42 @@ function wcmlim_show_address_on_checkout()
             'wcmlim_email' => $email,
             'wcmlim_phone' => $phone,
           );
+          $error_prep = '';
+          foreach (WC()->cart->get_cart() as $cart_item_id => $cart_item) {  
+            $cart_product_id = $cart_item['variation_id'] ?: $cart_item['product_id'];
+            $wc_product = wc_get_product( $cart_product_id );
+            $wc_item_name = $wc_product->get_name();
+             if(!empty($cart_product_id))
+            {
+              $loc_stock = intval(get_post_meta($cart_product_id, "wcmlim_stock_at_$term_id", true));
+              $postmeta_backorders_product = get_post_meta($cart_product_id, '_backorders', true);
+      
+
+              if(($loc_stock == '0') || ($loc_stock == '') || ($loc_stock < 0))
+              {
+                if((!empty($postmeta_backorders_product)) && ($postmeta_backorders_product != "yes") )
+                {
+                  if(!empty($error_prep))
+                  {
+                    $error_prep .= "<br /> The Item <i>$wc_item_name</i> could not be Pickup at <i>$location_name</i>";
+                  }
+                  else
+                  {
+                    $error_prep .= "<br /> The Item <i>$wc_item_name</i> could not be Pickup at <i>$location_name</i>";
+                  }
+                }
+              }          
+            }
+          }
+
+          if(!empty($error_prep))
+          {
+            wc_clear_notices();
+            wc_add_notice($error_prep, 'error');
+            do_action( 'woocommerce_set_cart_cookies',  true );
+          }
+          
+
           echo json_encode($term_meta);
           die();
 
@@ -141,8 +179,73 @@ function wcmlim_show_address_on_checkout()
 
     }
 // ajax call back and hook to show local pickup address on checkout page -codeend
+add_action('woocommerce_after_checkout_validation', 'wcmlim_after_checkout_validation', 10, 2);
 
+function wcmlim_after_checkout_validation( $fields, $errors ) {
+  $error_prep = '';
 
+   $wcmlim_get_shipping_method = $fields['shipping_method'];
+   $wcmlim_get_shipping_method = explode(':', $wcmlim_get_shipping_method[0]);
+   $wcmlim_pickup_location_result = str_contains("wcmlim_pickup_location", $wcmlim_get_shipping_method[0]) ? 'wcmlim_pickup_location' : 'other';
+   if($wcmlim_pickup_location_result == "wcmlim_pickup_location")
+   {
+   $wcmlim_selected_pickup_location = $_POST['wcmlim_pickup'];
+   
+   $wcmlim_selected_pickup_location_terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
+   $pickup_location_id = '';
+   foreach ($wcmlim_selected_pickup_location_terms as $wcmlim_selected_pickup_location_term) {
+
+    if( $wcmlim_selected_pickup_location_term->name == $wcmlim_selected_pickup_location)
+     {
+      $pickup_location_name = $wcmlim_selected_pickup_location_term->name;
+      $pickup_location_id = $wcmlim_selected_pickup_location_term->term_id;
+     }
+   }
+   if($wcmlim_selected_pickup_location == '-1')
+    {
+      $error_prep .= "It seems the Pickup Location has not been selected, Please Select Location and try again";
+    }
+   if(!empty($pickup_location_id))
+   {
+    foreach (WC()->cart->get_cart() as $cart_item_id => $cart_item) {
+      $cart_product_id = $cart_item['variation_id'] ?: $cart_item['product_id'];
+      $wc_product = wc_get_product( $cart_product_id );
+      $wc_item_quantity = intval($cart_item['quantity']);
+      $wc_item_name = $wc_product->get_name();
+     
+       if(!empty($cart_product_id))
+      {
+        $loc_stock = intval(get_post_meta($cart_product_id, "wcmlim_stock_at_$pickup_location_id", true));
+        $postmeta_backorders_product = get_post_meta($cart_product_id, '_backorders', true);
+        if((($loc_stock == 0) || ($loc_stock == '') || ($loc_stock < 0)) && ($postmeta_backorders_product == 'no'))
+        {
+          if((!empty($postmeta_backorders_product)) && ($postmeta_backorders_product != "yes") )
+          {
+            if(!empty($error_prep))
+            {
+              $error_prep .= "<br /> The Item <i>$wc_item_name</i> could not be Pickup at <i>$pickup_location_name</i>";
+            }
+            else
+            {
+              $error_prep .= "<br /> The Item <i>$wc_item_name</i> could not be Pickup at <i>$pickup_location_name</i>";
+            }
+          }
+        }
+        if(($loc_stock != 0) && ($loc_stock < $wc_item_quantity) && ($postmeta_backorders_product == 'no'))
+        {
+          $error_prep .= "<br /> The Item <i>$wc_item_name</i>'s quantity <i>$wc_item_quantity</i> is not be available for Pickup location [<i>$pickup_location_name</i>]";
+        }
+                  
+      }
+    }
+   }
+
+    }
+    if(!empty($error_prep))
+   {
+    $errors->add( 'validation', $error_prep );
+   }
+}
 add_action('woocommerce_shipping_init', 'wcmlim_local_shipping_init');
 
 function wcmlim_local_shipping_method($methods)
@@ -351,7 +454,10 @@ function wcmlim_location_row_layout()
    $locAdd = array();  
    $pickupAdd = array(); 
    foreach ($cart as $array_item) {
-        if (isset($array_item['select_location']['location_name'])) {
+    $pid = ($array_item['variation_id'] != '0') ? $array_item['variation_id'] : $array_item['product_id'];
+    $product_obj = wc_get_product( $pid );
+    $product_obj_name = $product_obj->get_name();
+    if (isset($array_item['select_location']['location_name'])) {
           $terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
           foreach ($terms as $term) {
             if ($term->name == $array_item['select_location']['location_name']) {
@@ -366,8 +472,25 @@ function wcmlim_location_row_layout()
               $country = get_term_meta($term_id, 'wcmlim_country', true);
 			  $pickup = get_term_meta($term_id, 'wcmlim_allow_pickup', true);
 			  $isClearCart = get_option('wcmlim_clear_cart');
-			  $arrayloc = $streetNumber . " " . $locality . " " . $state . " " . $route;
-        $cart_message = "<b>Pickup Address for $term_name: </b>" . $streetNumber . " " . $route . " " . $locality . " "  . $state . " " . $postal_code . " " . $country . "<br/>";
+			   $arrayloc = $streetNumber . " " . $locality . " " . $state . " " . $route;
+         $new_address = '';
+         if(!empty($streetNumber)){
+          $new_address .=  $streetNumber.',';
+         }if(!empty($route)){
+          $new_address .=  $route.',';
+         }
+         if(!empty($locality)){
+          $new_address .=  $locality.',';
+         }
+         if(!empty($state)){
+          $new_address .=  $state.',';
+         }
+         if(!empty($postal_code)){
+          $new_address .=  $postal_code.',';
+         }if(!empty($country)){
+          $new_address .=  $country;
+         }
+         $cart_message = "<b>Product ".$product_obj_name." </b><br /> <small>Pickup Address for $term_name: </small>" . $new_address. "<br/>";
         if (!empty($cart_message)) {
           ?>
             <tr class="shipping-pickup-store ">
@@ -411,11 +534,16 @@ function wcmlim_location_row_layout()
 
             ?>
           </select>
-          <p class="local_pickup_address"></p>
+          
         </td>
         
         
       </tr>
+      <tr>
+        <td colspan="2">
+      <p class="local_pickup_address"></p>
+          </td>
+        </tr>
 <?php
     }
   }

@@ -2,7 +2,7 @@
  * All of the CSS for your admin-specific functionality should be
  * included in this file.
  */
-.alertify .ajs-header {
+ .alertify .ajs-header {
   display: none !important;
 }
 
@@ -89,10 +89,10 @@ table thead tr #product_tag {
 }
 
 label[for="postal_code"]::after,
-label[for="country"]::after,
 /* label[for="street_number"]::after, */
-label[for="locality"]::after,
-label[for="administrative_area_level_1"]::after {
+/* label[for="locality"]::after, */
+/* label[for="administrative_area_level_1"]::after, */
+label[for="country"]::after {
   content: "*";
   color: #e32;
   font-size: 21px;
@@ -837,11 +837,13 @@ form#general_setting_form th>label {
 }
 
 .wcmlim-addon-column .button {
-  text-align: center;
-  width: 86%;
-  margin: 20px;
-  /* width: 80%; */
-  /* margin: 12px 0px 10px 10%; */
+    text-align: center;
+    width: 67%;
+    margin: 5% 15%;
+    color: #ffffff;
+    border-color: #2271b1;
+    background: #6c8fc9;
+    vertical-align: top;
 }
 
 .wcmlim-addon-column img {
@@ -861,4 +863,16 @@ input::-webkit-inner-spin-button {
 
 #wcmlim_phone_validation{
   -moz-appearance: textfield;
+}
+img#pop {
+  height: 11px !important;
+  padding-left: 12px !important;
+}
+.wcmlim_price{
+  background: #6b90ca;
+  float: right;
+  padding: 0.5rem;
+  font-size: 22px;
+  color: white;
+  margin: 0;
 }

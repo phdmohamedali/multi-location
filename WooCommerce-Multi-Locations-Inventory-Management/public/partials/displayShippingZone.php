@@ -134,12 +134,18 @@ class Wcmlim_Display_Shipping_zone
                         foreach ($terms as $term) {
                             if ($term->name == $array_item['select_location']['location_name']) {
                                 $wcmlim_shipping_method = get_term_meta($term->term_id, 'wcmlim_shipping_method', true);
+                            $method_found =  0;
                                 foreach ($available_methods as $shipping_method => $value) {
-                                    $instance_id = $value->instance_id;                                   
-                                    if (!in_array($instance_id, $wcmlim_shipping_method)) {                                      
-                                        wc_add_notice("Cart item <b> $product_name </b> could not be delivered in shipping zone", "error"); 
-                                        unset($available_methods[$shipping_method]);
+                                     $instance_id = $value->instance_id;
+                                      if (!in_array($instance_id, $wcmlim_shipping_method)) {
+                                        unset($available_methods[$shipping_method]);  
+                                    }else {
+                                        $method_found = $method_found +1;
                                     }
+
+                                }
+                                if ($method_found == 0) {
+                                     wc_add_notice("Cart item <b> $product_name </b> could not be delivered in shipping zone", "error");
                                 }
                             }
                         }

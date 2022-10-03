@@ -40,7 +40,7 @@ class Wcmlim_Backend_Only_Mode
     }
       if ($fulfilment_rule == "clcsadd") {
        
-
+        
         add_action('woocommerce_checkout_update_order_review', [$this, 'wcmlim_backend_mode_nearby_location_selection_shipping_address']);
        
         add_filter( 'woocommerce_cart_item_name', [$this, 'wcmlim_cart_item_name'], 10, 3 );
@@ -61,8 +61,11 @@ class Wcmlim_Backend_Only_Mode
     add_action('woocommerce_order_status_completed', [$plugin_public, "wcmlim_maybe_reduce_stock_levels"]);
     add_action('woocommerce_order_status_processing', [$plugin_public, "wcmlim_maybe_reduce_stock_levels"]);
     add_action('woocommerce_order_status_on-hold', [$plugin_public, "wcmlim_maybe_reduce_stock_levels"]);
-    wp_register_script('pr_cycle_all',get_stylesheet_directory_uri().'/js/pr-slider.js');
-   
+    add_action( 'wp_enqueue_scripts', 'pr_cycle_scripts' );
+    function pr_cycle_scripts (){
+      wp_register_script('pr_cycle_all',get_stylesheet_directory_uri().'/js/pr-slider.js');
+      wp_enqueue_script('pr_cycle_all');
+    }
   }
   
   /**
@@ -74,14 +77,13 @@ class Wcmlim_Backend_Only_Mode
   //enqueue js scripts while backend only mode is enabled 
   public function wcmlim_show_address_checkout()
     {
-      
+    $this->version = '3.2.1';
       wp_enqueue_script('jquery');
       wp_register_script('wcmlim_show_address', WCMLIM_URL_PATH . 'public/js/wcmlim-show-address.js', array('jquery'), rand(), false);
       wp_enqueue_script('wcmlim_show_address');
       wp_localize_script( 'wcmlim_show_address', 'admin_url', array('ajax_url' => admin_url( 'admin-ajax.php' ) ) );
-      wp_enqueue_style($this->plugin_name . '_frontview_css', WCMLIM_URL_PATH . '/public/css/wcmlim-public.css', array(), $this->version, 'all');
+      wp_enqueue_style('wcmlim_frontview_css', WCMLIM_URL_PATH . '/public/css/wcmlim-public.css', array(), $this->version, 'all');
     
-
     }
   //enqueue js scripts while backend only mode is enabled -endcode
 
@@ -408,7 +410,7 @@ class Wcmlim_Backend_Only_Mode
       <td colspan="100">
         <div class="order-item-wcml-wrapper">
           <div class="form-group">
-          <label for="_bom_location"><?php _e('Location:', 'wcmlim');?></label>       
+          <label for="_bom_location"><?php _e('Location:', 'wcmlim');?></label> 
                <select id="_bom_location_<?=$item_id?>" name="_bom_location_<?=$item_id?>" style="width:auto">  
             <?php // if( $routeRules == "default") { ?>
               <option value=""><?php _e('Select location', 'wcmlim'); ?></option>
@@ -420,7 +422,7 @@ class Wcmlim_Backend_Only_Mode
                   $maxStockLoc[$t->term_id] = get_post_meta($product_id, 'wcmlim_stock_at_' . $t->term_id, true);
                   /* if(!empty($location_term_id)){
                     if($t->term_id == $location_term_id){ $lk = $k; }
-                  } */                
+                  } */   
                   $lker[$t->term_id] = $k;
                 }
                 $maxValue = max($maxStockLoc); // get max number
@@ -553,6 +555,7 @@ class Wcmlim_Backend_Only_Mode
   }
   public function wcmlim_backend_mode_nearby_location_selection_shipping_address($posted_data)
   {
+
     global $destination_prepare, $locations_data_lat_lng, $latlngarr, $shipping_latitude, $shipping_longitude, $distance;
     $coordinates_calculator      = get_option('wcmlim_distance_calculator_by_coordinates');
    
@@ -651,9 +654,9 @@ class Wcmlim_Backend_Only_Mode
             $locality = get_term_meta($termid, 'wcmlim_locality', true);
             $state = get_term_meta($termid, 'wcmlim_administrative_area_level_1', true);
             $postal_code = get_term_meta($termid, 'wcmlim_postal_code', true);
-            $country = get_term_meta($termid, 'wcmlim_country', true);
-			$loc_lat = get_term_meta( $termid, 'wcmlim_lat', true );
-			$loc_lng = get_term_meta( $termid, 'wcmlim_lng', true );
+            $country = get_term_meta($termid, 'wcmlim_country', true); 
+			      $loc_lat = get_term_meta( $termid, 'wcmlim_lat', true );
+			      $loc_lng = get_term_meta( $termid, 'wcmlim_lng', true );
 		
             if ($streetNumber) {
                 $streetNumber = $streetNumber . " ,";
@@ -734,13 +737,17 @@ class Wcmlim_Backend_Only_Mode
       else
       {
             $distance = $this->get_nearby_distance_by_api($dis_unit,$prepare_destination_address_string,$destination,$google_api_key);
-            usort($distance, function (array $a, array $b) {
-              $adistance = floatval($a['distance']);
-              $bdistance = floatval($b['distance']); 
-              return floatval($adistance) > floatval($bdistance);
-          });
-         
-            $this->wcmlim_nearby_stock_adjustment($product_id,$match_dest,$distance,$item_id);
+            if(is_array($distance))
+            {
+              usort($distance, function (array $a, array $b) {
+                $adistance = floatval($a['distance']);
+                $bdistance = floatval($b['distance']); 
+                return floatval($adistance) > floatval($bdistance);
+            });
+           
+              $this->wcmlim_nearby_stock_adjustment($product_id,$match_dest,$distance,$item_id);
+            }
+
            
           }
           
@@ -769,14 +776,20 @@ class Wcmlim_Backend_Only_Mode
             "loc_lng" => $value['loc_lng'],
             "distance" => $distance
           ); 
-        }       
-      
+        }
+        if(is_array($coordinates_prepare_result))
+        {
+
           usort($coordinates_prepare_result, function (array $a, array $b) {
             $adistance = floatval($a['distance']);
             $bdistance = floatval($b['distance']); 
             return $adistance > $bdistance;
         });
             $this->wcmlim_nearby_stock_adjustment($product_id,$match_dest,$coordinates_prepare_result,$item_id);
+        
+        }       
+      
+
         
         }    
 
@@ -962,7 +975,9 @@ public function get_nearby_distance_by_api($dis_unit,$prepare_destination_addres
                     
                 }
             }
+            if(isset($distance)){
             return $distance;
+          }
         }
 
   public function getLocationServiceRadius($distanceKey){

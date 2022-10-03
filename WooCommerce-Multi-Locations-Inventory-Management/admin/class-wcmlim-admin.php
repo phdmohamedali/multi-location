@@ -365,8 +365,8 @@ class Wcmlim_Admin
       );
       add_submenu_page(
         'multi-location-inventory-management',
-        __('Addons', 'wcmlim'),
-        __('Addons', 'wcmlim'),
+        __('Addons <img src="' . plugin_dir_url(__FILE__) . 'img/wcmlim_new.gif" id="pop">' , 'wcmlim'),
+        __('Addons <img src="' . plugin_dir_url(__FILE__) . 'img/wcmlim_new.gif" id="pop">' , 'wcmlim'),
         'manage_options',
         'wcmlim-addon-settings',
         array($this, 'wcmlim_addon_settings')
@@ -530,7 +530,10 @@ class Wcmlim_Admin
       $this->option_name . '_general',
       array('label_for' => $this->option_name . '_enable_userspecific_location')
     );
-
+    $isLocationsGroup = get_option('wcmlim_enable_location_group');
+    if($isLocationsGroup == 'on'){
+      $excludedLocationGroup = get_option($this->option_name . '_exclude_locations_group_frontend');
+   
     add_settings_field(
       $this->option_name . '_exclude_locations_group_frontend',
       __('Exclude Location Group From FrontEnd', 'wcmlim'),
@@ -538,7 +541,7 @@ class Wcmlim_Admin
       $this->plugin_name,
       $this->option_name . '_general',
       array('label_for' => $this->option_name . '_exclude_locations_group_frontend')
-    );
+      );}
 
     add_settings_field(
       $this->option_name . '_exclude_locations_from_frontend',
@@ -626,7 +629,7 @@ class Wcmlim_Admin
       array($this, $this->option_name . '_order_fulfil_edit_callback'),
       $this->plugin_name,
       $this->option_name . '_general',
-      array('label_for' => $this->option_name . '_order_fulfil_edit')
+      array('label_for' => $this->option_name . '_order_fulfil_edit' , 'class' => 'hidden')
     );
 
     add_settings_field(
@@ -3217,10 +3220,10 @@ public function wcmlim_sync_on_product_save( $meta_id, $post_id, $meta_key, $met
       }
       else 
       {
-		$resetTerms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false));
-		foreach ($resetTerms as $rT) {
-			update_post_meta($post_id, "wcmlim_stock_at_{$rT->term_id}", 0);
-		}
+		// $resetTerms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false));
+		// foreach ($resetTerms as $rT) {
+		// 	update_post_meta($post_id, "wcmlim_stock_at_{$rT->term_id}", 0);
+		// }
       return;
       }    
       }
@@ -3360,7 +3363,6 @@ public function wcmlim_sync_on_product_save( $meta_id, $post_id, $meta_key, $met
       }
       $ui = isset($userID) ? $userID : "";
       $selected_location = get_user_meta($ui, 'wcmlim_user_specific_location', true);
-
       $locations_list = $this->wcmlim_get_all_locations();
       if (sizeof($locations_list) > 0) {
       ?>
@@ -4726,10 +4728,13 @@ public function wcmlim_sync_on_product_save( $meta_id, $post_id, $meta_key, $met
       if ($data_name == "stckup_product_stock_at_location") {
         $data_location = $_POST['data-location'];  
         update_post_meta($data_id, 'wcmlim_stock_at_' . $data_location, $inp_value);
+        wp_update_post([
+          'ID' => $data_id,
+        ]);
         $terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
         $arr_stock = array();
         foreach ($terms as $key => $value) {
-          $loc_stock_val = (int)get_post_meta( $data_id, "wcmlim_stock_at_{$value->term_id}" , true );
+          $loc_stock_val = intval(get_post_meta( $data_id, "wcmlim_stock_at_{$value->term_id}" , true ));
           array_push($arr_stock, $loc_stock_val);
           $total_stock_qty = array_sum($arr_stock);
         }
@@ -4763,6 +4768,9 @@ public function wcmlim_sync_on_product_save( $meta_id, $post_id, $meta_key, $met
       }
       if ($data_name == "product_stock_manage") {
         update_post_meta($data_id, '_manage_stock', $inp_value);
+        wp_update_post([
+          'ID' => $data_id,
+        ]);
       }
       if ($data_name == "stckup_product_short_description") {
         wp_update_post([
@@ -4863,7 +4871,99 @@ public function wcmlim_sync_on_product_save( $meta_id, $post_id, $meta_key, $met
 
   public function support_validator_admin_notice() {  
 	  $wcmlim_validte = get_option('wcmlim_license', true);
-	  return $wcmlim_validate;
+	  if($wcmlim_validte != 'invalid')
+	  {		 
+      $user = wp_get_current_user();
+      $buyer_email = $user->user_email;
+      $purchase_code = get_option('purchase_code');
+      $purchase_username = get_option('purchase_username');
+      @update_option('date', $date);
+      $url = get_site_url();
+      $domain_str = parse_url($url, PHP_URL_HOST);
+      $domain = str_replace('www.', '', $domain_str);
+      if(!function_exists('wp_get_current_user')) {
+        include(ABSPATH . "wp-includes/pluggable.php"); 
+      }
+      $json_array = array(
+        "purchase_code" => $purchase_code,
+        "purchase_username" => $purchase_username,
+        "domain" => $domain,
+        "email" => $purchase_username
+      );
+      $json_format = json_encode($json_array);
+
+      $curl = curl_init();
+      curl_setopt_array($curl, array(
+      CURLOPT_URL => "https://verify.techspawn.com/wp-json/my-route/support/",
+      CURLOPT_RETURNTRANSFER => true,
+      CURLOPT_ENCODING => "",
+      CURLOPT_MAXREDIRS => 10,
+      CURLOPT_TIMEOUT => 30,
+      CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+      CURLOPT_CUSTOMREQUEST => "POST",
+      CURLOPT_POSTFIELDS => $json_format,
+      CURLOPT_HTTPHEADER => array(
+      "accept: application/json",
+      "content-type: application/json"
+      ),
+      ));
+
+      $response = curl_exec($curl);
+      $err = curl_error($curl);
+      curl_close($curl);
+
+      if ($err) {
+        echo "cURL Error #:" . $err;
+      } else {
+        $response;
+      }
+      $response_arr = json_decode($response);      
+      if (isset($response_arr->result) && $response_arr->result == 1) {
+        $result = $response_arr->message;
+        $supported_until = $response_arr->supported_until;
+        $supported_until = date("d-m-Y", strtotime($supported_until));
+        $now = time(); // or your date as well
+        $support_date = strtotime($response_arr->supported_until);
+        $datediff = $support_date - $now;
+        $difffound =  round($datediff / (60 * 60 * 24));
+        if (strpos($difffound, '-') !== false) {
+            ?>
+            <div class="notice notice-error is-dismissible">
+            <p>
+              Your support for <b><?php echo $response_arr->product; ?></b> has been expired, please <a href ="<?php echo $response_arr->url; ?>">Click here to renew your support</a>
+            </p>
+          </div>
+            <?php
+        }
+        else
+        {
+          if($difffound < 8)
+          {
+            ?>
+          <div class="notice notice-warning is-dismissible">
+            <p>
+            Your support for <b><?php echo $response_arr->product; ?></b> expires in <b><?php echo $difffound; ?> Days</b>, please <a href ="<?php echo $response_arr->url; ?>">Click here to renew your support</a>
+            </p>
+          </div>
+          <?php
+          }
+        }
+        update_option('wcmlim_license', "valid");  
+      }
+      else 
+      {
+        ?>
+        <div class="notice notice-error is-dismissible">
+        <p><?php        
+        if (isset($response_arr->error_message)) {
+          echo $response_arr->message; 
+        }
+        ?></p>
+        </div>
+        <?php
+        update_option('wcmlim_license', "invalid");            
+      }      
+    }
   }
   public function wcmlim_deactivate_plugin()
   {

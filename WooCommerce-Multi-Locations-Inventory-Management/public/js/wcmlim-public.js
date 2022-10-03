@@ -101,6 +101,8 @@ jQuery( document ).ready( ( $ ) =>
             .attr( "value", $( this ).val() )
             .attr( "data-lc-qty", $( this ).attr( 'data-lc-qty' ) )
             .attr( "data-lc-address", $( this ).attr( 'data-lc-address' ) )
+            .attr( "data-lc-backorder", $( this ).attr( 'data-lc-backorder' ) )
+            .attr( "data-lc-stockstatus", $( this ).attr( 'data-lc-stockstatus' ) )
             .addClass( locclass )
             .click( function ()
             {
@@ -111,6 +113,9 @@ jQuery( document ).ready( ( $ ) =>
           var labelText2 = labelText1.split( "-" );
           var labelText3 = labelText2[ 0 ].split( ":" );
           var labelText4 = $( this ).attr( 'data-lc-address' );
+          var backorder_allow = $( this ).attr( 'data-lc-backorder' );
+          var simple_product_backorder  = $( "#backorderAllowed" ).val();
+          var location_stock_status = $( this ).attr( 'data-lc-stockstatus' );
           var currentItem = $( "input[class='wclimcol1 wclim_inp" + i + " " + locclass + "'][value='" + $( this ).val() + "']" );
           $( "<div class='wclimcol2'>" ).html( "<p class='wcmlim_optloc" + i + " " + locclass + "'>" + labelText3 + "</p>" ).insertAfter( currentItem );
           var pItem = '.wcmlim_optloc' + i;
@@ -125,18 +130,27 @@ jQuery( document ).ready( ( $ ) =>
           }
           var paddress = '.wcmlim_optadd' + i;
           var stockupp = $( this ).attr( 'data-lc-qty' );
+          if(location_stock_status == 'instock'){
+            $( "<p class='stockupp'>" ).text( "In Stock" ).insertAfter( paddress );
+        }
+          if (backorder_allow == 'yes' || simple_product_backorder == 1){
+            var soldoutbtntxt = "On Backorder";
+            $( "<p class='outof_stockupp'>" ).text( soldoutbtntxt ).insertAfter( paddress );
+          }else {
           if ( stockupp == 0 )
           {
-            //for out of stock button text
-           
-            var backorder_allow = passedSoldbtn.backorder;
-            if (backorder_allow == 'yes'){
+            if(location_stock_status == 'instock'){
+             // $( "<p class='stockupp'>" ).text( "In Stock" ).insertAfter( paddress );
+          }else {
+            if (backorder_allow == 'yes' || simple_product_backorder == 1){
               var soldoutbtntxt = "On Backorder";
             }else {
               var soldoutbtntxt = passedSoldbtn.keys;
             }
-            
             $( "<p class='outof_stockupp'>" ).text( soldoutbtntxt ).insertAfter( paddress );
+              
+          }
+
           } else if ( stockupp == "undefined" || stockupp == null )
           {
             $( "<p class='stockupp'>" ).text( "" ).insertAfter( paddress );
@@ -150,6 +164,7 @@ jQuery( document ).ready( ( $ ) =>
               $( "<p class='stockupp'>" ).text( "In Stock : " + stockupp ).insertAfter( paddress );
             }
           }
+        }  
           if ( detailadd == "on" )
           {
             $( ".wcmlim_detadd" ).show();
@@ -1362,7 +1377,7 @@ jQuery( document ).ready( ( $ ) =>
               }
 
             } );
-            $('select[name^="wcmlim_change_sl_to"] option[value='+location_group+']').attr("selected","selected");
+            $('select[name="wcmlim_change_sl_to"] option[value="'+location_group+'"]').attr("selected","selected");
             $( '#wcmlim-change-sl-select' ).removeAttr( "disabled" );
             $( '#wcmlim-change-lc-select' ).removeAttr( "disabled" );
             $( '#wcmlim-change-lcselect' ).removeAttr( "disabled" );
@@ -1441,7 +1456,8 @@ jQuery( document ).ready( ( $ ) =>
         )
         {
           if ( stockStatus == "Out of Stock" || selectedLQ <= 1 )
-          {
+          { 
+           if(sLValue != '') {
             $(
               '<div id="load" style="display:none"><img src="//s.svgbox.net/loaders.svg?fill=maroon&ic=tail-spin" style="width:33px"></div>'
             ).appendTo( ".Wcmlim_nextloc_label" );
@@ -1456,7 +1472,7 @@ jQuery( document ).ready( ( $ ) =>
               dataType: "json",
               success ( res )
               {
-                // console.log(res);
+              
                 if ( $.trim( res.status ) == "true" )
                 {
                   if ( nextloc == "on" )
@@ -1492,9 +1508,10 @@ jQuery( document ).ready( ( $ ) =>
               },
               error ( res )
               {
-                // console.log( res );
+               //  console.log( res );
               },
             } );
+           }  
             if (
               $( "#globMsg, #losm, #seloc, #locsoldImg, #locstockImg" ).length > 0
             )
@@ -1643,11 +1660,20 @@ jQuery( document ).ready( ( $ ) =>
             action: "wcmlim_display_location",
           },
           success ( output )
-          {
+          {            
             $( ".sel_location.Wcmlim_sel_loc" ).hide();
             $( ".wcmlim-lcswitch" ).show();
             $( ".rselect_location" ).empty();
             const select = JSON.parse( output );
+            var sel_stock_status = String(select.stock_status);
+            if( sel_stock_status == "outofstock")
+            {
+              $(".Wcmlim_container.wcmlim_product").hide();
+            }
+            else
+            {
+              $(".Wcmlim_container.wcmlim_product").show();
+            }
             var size = Object.keys( select ).length;
             const pop = $( "#productOrgPrice" ).val();
             $( ".select_location" ).empty();
@@ -1672,8 +1698,9 @@ jQuery( document ).ready( ( $ ) =>
             $.each( select, ( key, value ) =>
             {
               var defl = value.default_location;
+              var location_name = value.text;
               if ( key !== "backorder" )
-              {
+              { 
                 $( "<option></option>" )
                   .attr( "value", key )
                   .attr( "class", value.location_class )
@@ -1682,8 +1709,9 @@ jQuery( document ).ready( ( $ ) =>
                   .attr( "data-lc-address", value.location_address )
                   .attr( "data-lc-regular-price", value.regular_price )
                   .attr( "data-lc-sale-price", value.sale_price )
+                  .attr( "data-lc-backorder", value.variation_backorder )
+                  .attr( "data-lc-stockstatus", value.location_stock_status )
                   .appendTo( ".select_location" );
-
                 if ( isdefault == "on" )
                 {
                   if ( key == defl )
@@ -1700,7 +1728,6 @@ jQuery( document ).ready( ( $ ) =>
                 $( "#backorderAllowed" ).val( value );
               }
             } );
-
             $( ".select_location" )
               .find( "option" )
               .each( function ()
@@ -1950,7 +1977,8 @@ jQuery( document ).ready( ( $ ) =>
       $( ".rlist_location input[name=wcmlim_change_lc_to][value=" + selectedValue + "]" ).prop( 'checked', true );
     }
     const stockQt = $( e ).find( "option:selected" ).attr( "data-lc-qty" );
-    const prId = $( ".single_add_to_cart_button" ).val();
+    // const prId = $( ".single_add_to_cart_button" ).val();
+    const prId = $( ".variation_id" ).val();
     const boStatus = $( "#backorderAllowed" ).val();
     $( ".Wcmlim_loc_label" ).show();
     $( ".postcode-checker-change" ).trigger( "click" );

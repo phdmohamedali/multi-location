@@ -217,7 +217,7 @@ class Wcmlim_Public
 		$getdirection = get_option('wcmlim_get_direction_for_location');
 		$specificLocation = get_user_meta($current_user_id, 'wcmlim_user_specific_location', true);	
 		$isLocationsGroup = get_option('wcmlim_enable_location_group');
-		
+
 		if ($isClearCart == 'on') {
 			wp_enqueue_script('woocommerce-ajax-add-to-cart', plugin_dir_url(__FILE__) . 'js/clear-cart.js', array('jquery'), $this->version . rand(), true);
 			wp_localize_script($this->plugin_name, 'multi_inventory', array(
@@ -296,10 +296,10 @@ class Wcmlim_Public
 		} else {
 			$terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
 		}
-		// if (isset($product_id) && !$globalPincheck) {
+		 if (isset($product_id) && !$globalPincheck) {
 		$product = wc_get_product($product_id);
-		// $backorder = $product->backorders_allowed();
-		// }
+		 $backorder = $product->backorders_allowed();
+		 }
 		$google_api_key = get_option('wcmlim_google_api_key');
 		// Check for the custom field value
 		$sli = isset($_POST["selectedLocationId"]) ? $_POST["selectedLocationId"] : "";
@@ -644,11 +644,10 @@ class Wcmlim_Public
                 }
             }
 			
-            $dis_in_unit = min($distance)['plaindis'];
+			$dis_in_unit = (is_array($distance)) ? min($distance)['plaindis'] : '';
 			
-
-            $dis_key = min($distance)['key'];
 			
+            $dis_key = (is_array($distance)) ? min($distance)['key'] : '';
             foreach ($response_arr->destination_addresses as $k => $v) {
                 if ($k == $dis_key) {
                     $lcAdd = str_replace(",", "", $v);
@@ -787,8 +786,8 @@ class Wcmlim_Public
 					}
 				}
 			}
-				$dis_in_unit = min($distance)['dis_in_un'];
-				$dis_key = min($distance)['key'];
+			$dis_in_unit = (is_array($distance)) ? min($distance)['plaindis'] : '';
+				$dis_key = (is_array($distance)) ? min($distance)['key'] : '';
 				foreach ($responses[$i]->destination_addresses as $k => $v) {
 					if ($k == $dis_key) {
 						$lcAdd = str_replace(",", "", $v);
@@ -821,13 +820,13 @@ class Wcmlim_Public
 				$response_array["cookie"] = $nearby_location;
 				echo json_encode($response_array);
 				die();
-			} 				
-			die();	
-
+			}			
+			die();
+			
         }
 
 		}
-		
+
 	}
 
 	public function getLocationServiceRadius($distanceKey){
@@ -976,25 +975,10 @@ class Wcmlim_Public
 		global $post;
 
 			//for out of stock button text
-	
-				$product = wc_get_product();
-				// if(!empty($product)) {
-					if((!empty($product))) {
-				$product_id = $product->get_id();
-	$soldoutbuttontext = get_option("wcmlim_soldout_button_text");
-		  $postmeta_backorders_product = get_post_meta($product_id, '_backorders', true);
-		  
-			}else {
-				$product_id = '';
-	$soldoutbuttontext = '';
-		  $postmeta_backorders_product = '';
-	
-			}
-			
-		 
+
+		  $soldoutbuttontext = get_option("wcmlim_soldout_button_text");
 		  $soldbtntext = array(
 			'keys' => $soldoutbuttontext,
-			'backorder' => $postmeta_backorders_product
 		  );
 		  wp_localize_script( $this->plugin_name, 'passedSoldbtn', $soldbtntext );
 
@@ -1117,7 +1101,7 @@ class Wcmlim_Public
 									<?php } else { ?>
 										<div class="loc_dd Wcmlim_prefloc_sel">
 										<?php } ?>
-										<label class="Wcmlim_sloc_label" for="select_location"><?php if ($txt_preferred) {
+										<label class="Wcmlim_sloc_label" for="select_location" style = "<?php if($display_preferred == 'on'){echo 'display:none';}?>"><?php if ($txt_preferred) {
 																									echo $txt_preferred;
 																								} else {
 																									_e('Location: ', 'wcmlim');
@@ -1259,7 +1243,7 @@ class Wcmlim_Public
 													<?php } else { ?>
 														<div class="loc_dd Wcmlim_prefloc_sel">
 														<?php } ?>
-														<label class="Wcmlim_sloc_label" for="select_location">
+														<label class="Wcmlim_sloc_label" for="select_location" style = "<?php if($display_preferred == 'on'){echo 'display:none';}?>">
 															<?php if ($txt_preferred) {
 																echo $txt_preferred;
 															} else {
@@ -1295,13 +1279,7 @@ class Wcmlim_Public
 																	$stock_sale_price = wc_price($product->get_sale_price());
 																}
 																$term_meta = get_option("taxonomy_$term->term_id");
-																$term_meta = array_map(function ($term) {
-																	if (!is_array($term)) {
-																		return $term;
-																	}
-																}, $term_meta);
-																$term_meta = array_filter($term_meta);
-																$rl = implode(" ", $term_meta);
+																	$rl = $this->wcmlim_get_loactionaddress($term->term_id);
 																if ($enable_price == "on") {
 																	$price = "on";
 																} else {
@@ -1329,9 +1307,11 @@ class Wcmlim_Public
 																			if (preg_match('/^\d+$/', $preffLocation)) {
 																				if ($preffLocation == $k) echo "selected='selected'";
 																			} 
+																		} if($product->backorders_allowed()){
+																			$variation_backorder == 'yes';
 																		}
 																		?> 
-																		value="<?php echo $k; ?>" data-lc-qty="<?php esc_attr_e($stock_location_quantity); ?>" data-lc-address="<?php esc_attr_e(base64_encode($rl)); ?>" data-lc-regular-price="<?php esc_attr_e(wc_price($stock_regular_price)); ?>" data-lc-sale-price="<?php ((!empty($stock_sale_price)) ?  esc_attr_e(wc_price($stock_sale_price)) : _e("undefined")); ?>" class="<?php echo 'wclimloc_'.$term->slug; ?>"><?php 
+																		value="<?php echo $k; ?>" data-lc-backorder="<?php echo $variation_backorder; ?>" data-lc-qty="<?php esc_attr_e($stock_location_quantity); ?>" data-lc-address="<?php esc_attr_e(base64_encode($rl)); ?>" data-lc-regular-price="<?php esc_attr_e(wc_price($stock_regular_price)); ?>" data-lc-sale-price="<?php ((!empty($stock_sale_price)) ?  esc_attr_e(wc_price($stock_sale_price)) : _e("undefined")); ?>" class="<?php echo 'wclimloc_'.$term->slug; ?>"><?php 
 																			if($product->backorders_allowed()){
 																				echo ucfirst($term->name) . ' - ' . __('On Backorder', 'woocommerce');
 																			}else{
@@ -1351,6 +1331,7 @@ class Wcmlim_Public
 																		$stock_status = $product->get_stock_status();
 																		if($stock_status == "instock"){
 																			$optionname = ucfirst($term->name) . ' - ' . __($instock_btntxt, 'wcmlim');
+																			$location_stock_status = 'instock';
 																		}elseif($stock_status == "outofstock"){
 																			$optionname = ucfirst($term->name) . ' - ' . __($soldout_btntxt, 'wcmlim');
 																		}elseif($stock_status == "onbackorder"){
@@ -1359,7 +1340,7 @@ class Wcmlim_Public
 																		?>
 																		<option <?php if (preg_match('/^\d+$/', $preffLocation)) {
 																					if ($preffLocation == $k) echo "selected='selected'";
-																				} ?> class="<?php echo 'wclimloc_'.$term->slug; ?>" value="<?php echo $k; ?>" data-lc-address="<?php esc_attr_e(base64_encode($rl)); ?>"><?php echo $optionname; ?></option>
+																				} ?> class="<?php echo 'wclimloc_'.$term->slug; ?>" value="<?php echo $k; ?>" data-lc-address="<?php esc_attr_e(base64_encode($rl));  ?>" data-lc-stockstatus="<?php echo $location_stock_status; ?>" ><?php echo $optionname; ?></option>
 																		<?php
 																	}else{	
 																		if (isset($stock_location_quantity) && $hide_out_of_stock_location != "on") {
@@ -1808,8 +1789,20 @@ class Wcmlim_Public
 										foreach ($cart_item['select_location'] as $key => $value) {
 											$values[$key] = $value;
 										}
+										//add pickup text
+										// $chosen_shipping = WC()->session->get('chosen_shipping_methods');
+ 									    // $chosen_shipping = explode(":", $chosen_shipping);
+										
 
-										wc_add_order_item_meta($item_id, "Location", $values["location_name"]);
+										if(get_option('wcmlim_allow_local_pickup') == 'on' && $chosen_shipping[0] == "wcmlim_pickup_location"){
+											wc_add_order_item_meta($item_id, "Pickup Location", $values["location_name"]);
+
+										}
+										else
+										{
+											wc_add_order_item_meta($item_id, "Location", $values["location_name"]);
+
+										}
 										wc_add_order_item_meta($item_id, "_selectedLocationKey", $values["location_key"]);
 										wc_add_order_item_meta($item_id, "_selectedLocTermId", $values["location_termId"]);
 										setcookie("wcmlim_selected_location", $values["location_key"], time() + 36000, '/');
@@ -1900,6 +1893,19 @@ class Wcmlim_Public
 
 									return $cart_item_data;
 								}
+								//Detail Address List view
+								public function wcmlim_get_loactionaddress( $termid )
+								{
+									$termid = $termid;
+									$streetNumber = get_term_meta($termid, 'wcmlim_street_number', true);
+									$route = get_term_meta($termid, 'wcmlim_route', true);
+									$locality = get_term_meta($termid, 'wcmlim_locality', true);
+									$state = get_term_meta($termid, 'wcmlim_administrative_area_level_1', true);
+									$postal_code = get_term_meta($termid, 'wcmlim_postal_code', true);
+									$country = get_term_meta($termid, 'wcmlim_country', true);
+									return $streetNumber .  " " . $route . " " . $locality . " " . $state . " " . $postal_code . " " . $country;
+								
+								}
 								/**
 								 * WC custom notice message for variation
 								 */
@@ -1983,68 +1989,81 @@ class Wcmlim_Public
 									$product = wc_get_product($parent_product);
 									$stock_display_format = get_option('woocommerce_stock_format');
 									$instock_btntxt = get_option("wcmlim_instock_button_text");									
-
+							
 									if ($product instanceof WC_Product && $product->is_type('variable') && !$product->is_downloadable() && !$product->is_virtual()) {
 										$variations = $product->get_available_variations();
 										if (!empty($variations)) {
-											$backorder = $product->backorders_allowed();
+											//$backorder = $product->backorders_allowed();
 											foreach ($variations as $key => $value) {
+												//$variation = new WC_Product_Variation($value['variation_id']);
 												foreach ($terms as $k => $term) {
 													if ($product_id == $value['variation_id']) {
-														$stock_location_quantity =  get_post_meta($product_id, "wcmlim_stock_at_{$term->term_id}", true);
+														 $stock_location_quantity =  get_post_meta($product_id, "wcmlim_stock_at_{$term->term_id}", true);
+														// wp_die();
 														$stock_regular_price = get_post_meta($product_id, "wcmlim_regular_price_at_{$term->term_id}", true);
 														$stock_sale_price = get_post_meta($product_id, "wcmlim_sale_price_at_{$term->term_id}", true);
 														$backorder = !empty($value['backorders_allowed']) ? $value['backorders_allowed'] : 0;
+														$manage_stock = get_post_meta($product_id, '_manage_stock', true);
+														$stock_status = get_post_meta($product_id, '_stock_status', true);
+														
+														 $variable_is_in_stock =  $value['is_in_stock'];
+														// wp_die();
 														$d_location   = get_option('wcmlim_enable_default_location');
 														$selDefLoc = get_post_meta($product_id, "wcmlim_default_location", true);
 														$term_meta = get_option("taxonomy_$term->term_id");
-														$term_meta = array_map(function ($term) {
-															if (!is_array($term)) {
-																return $term;
-															}
-														}, $term_meta);
-														$term_meta = array_filter($term_meta);
-														$rl = implode(" ", $term_meta);
+													    $rl = $this->wcmlim_get_loactionaddress($term->term_id);
+
 														$term_location = base64_encode($rl);
-														if ($stock_location_quantity != 0 && $stock_location_quantity > 0) {
-																if ($stock_display_format == "no_amount" || $stock_display_format == "low_amount") {
-																	$response[$k]['text'] = $term->name . ' - ' . __($instock_btntxt, 'wcmlim');
-																} elseif (empty($stock_display_format)) {
-																	$response[$k]['text'] = $term->name . ' - ' . __($instock_btntxt, 'wcmlim');
-																}
-																if (!empty($stock_regular_price)) {
-																	$response[$k]['regular_price'] = wc_price($stock_regular_price);
-																}
-																if (!empty($stock_sale_price)) {
-																	$response[$k]['sale_price'] = wc_price($stock_sale_price);
-																}
-																$response[$k]['location_qty'] = $stock_location_quantity;
-																$response[$k]['location_address'] = $term_location;
-                                                                $response[$k]['location_class'] = "wclimloc_". $term->slug;
-																if (!empty($d_location) || !empty($selDefLoc)) {
-																	$defaultlocation = explode("_", $selDefLoc);
-																	$response[$k]['default_location'] = intval($defaultlocation[1]);
-																}
-														} else {
-															$hide_out_of_stock_location   = get_option('wcmlim_hide_out_of_stock_location');
-															if (!$product->managing_stock() && $product->is_in_stock()) {
-																if($backorder){
+														$hide_out_of_stock_location   = get_option('wcmlim_hide_out_of_stock_location');
+														// if (!empty($stock_location_quantity) && $stock_location_quantity > 0) {
+														// 		if ($stock_display_format == "no_amount" || $stock_display_format == "low_amount") {
+														// 			$response[$k]['text'] = $term->name . ' - ' . __($instock_btntxt, 'wcmlim');
+														// 		} elseif (empty($stock_display_format)) {
+														// 			$response[$k]['text'] = $term->name . ' - ' . __($instock_btntxt, 'wcmlim');
+														// 		}
+														// 		if (!empty($stock_regular_price)) {
+														// 			$response[$k]['regular_price'] = wc_price($stock_regular_price);
+														// 		}
+														// 		if (!empty($stock_sale_price)) {
+														// 			$response[$k]['sale_price'] = wc_price($stock_sale_price);
+														// 		}
+														// 		$response[$k]['location_qty'] = $stock_location_quantity;
+														// 		$response[$k]['location_address'] = $term_location;
+                                                        //         $response[$k]['location_class'] = "wclimloc_". $term->slug;
+														// 		if (!empty($d_location) || !empty($selDefLoc)) {
+														// 			$defaultlocation = explode("_", $selDefLoc);
+														// 			$response[$k]['default_location'] = intval($defaultlocation[1]);
+														// 		}
+														// 		if($backorder == 1){
+														// 			$response[$k]['variation_backorder'] = "yes";
+														// 		}
+																
+														// } 
+														// else {
+															
+															 if ($manage_stock == 1 || $manage_stock == 'yes' ) {
+																if($backorder == 1){
 																	$response[$k]['text'] = $term->name. ' - ' . __('On Backorder', 'woocommerce');
 																	if ($hide_out_of_stock_location != "on") {
 																		$response[$k]['text'] = $term->name . ' - ' . __('On Backorder', 'woocommerce');
 																		$response[$k]['location_qty'] = round(intval($stock_location_quantity));
 																		$response[$k]['location_class'] = "wclimloc_". $term->slug;
+																		$response[$k]['variation_backorder'] = "yes";
 																	}
 																}else{
-
-																	if($product->is_in_stock() && $stock_location_quantity > 0){
+																	if(!empty($stock_location_quantity) && $stock_location_quantity > 0){
 																		$response[$k]['text'] = $term->name. ' - ' . __('In stock', 'woocommerce');
+																		$response[$k]['location_qty'] = round(intval($stock_location_quantity));
+																		$response[$k]['location_address'] = $term_location;
+																		$response[$k]['location_class'] = "wclimloc_". $term->slug;
 																	}else{
 																		if ($hide_out_of_stock_location != "on") {
 																			$response[$k]['text'] = $term->name . ' - ' . __('Out of Stock', 'woocommerce');
 																			$response[$k]['location_qty'] = round(intval($stock_location_quantity));
-																			$response[$k]['location_class'] = "wclimloc_". $term->slug;
+																			$response[$k]['location_address'] = $term_location;
+																			 $response[$k]['location_class'] = "wclimloc_". $term->slug;
 																		}
+																		
 																	}
 																}
 
@@ -2055,21 +2074,29 @@ class Wcmlim_Public
 																	$response[$k]['sale_price'] = wc_price($stock_sale_price);
 																}
 															} else {
-																
 																if ($hide_out_of_stock_location != "on") {
-																	$response[$k]['text'] = $term->name . ' - ' . __('Out of Stock', 'woocommerce');
+																	 if ($stock_status =='instock') {
+																		$response[$k]['text'] = $term->name. ' - ' . __($stock_status, 'woocommerce'); 
+																		$response[$k]['location_qty'] = 0;
+																	$response[$k]['location_address'] = $term_location;
+                                                                    $response[$k]['location_class'] = "wclimloc_". $term->slug;
+																	$response[$k]['location_stock_status'] = 'instock';
+																	 }
+																	 else{
+																		$response[$k]['text'] = $term->name . ' - ' . __('Out of Stock', 'woocommerce');
+																		$response[$k]['location_class'] = "wclimloc_". $term->slug;
+																	}
 																	if (!empty($stock_regular_price)) {
 																		$response[$k]['regular_price'] = wc_price($stock_regular_price);
 																	}
 																	if (!empty($stock_sale_price)) {
 																		$response[$k]['sale_price'] = wc_price($stock_sale_price);
 																	}
-																	$response[$k]['location_qty'] = $stock_location_quantity;
-																	$response[$k]['location_address'] = $term_location;
-                                                                    $response[$k]['location_class'] = "wclimloc_". $term->slug;
+																	
 																}
+
 															}
-														}
+														// }
 													}
 												}
 											}
@@ -2079,6 +2106,7 @@ class Wcmlim_Public
 									echo json_encode($response);
 									die();
 								}
+
 
 
 								public function wcmlim_add_custom_price($cart_object)
@@ -2152,8 +2180,7 @@ class Wcmlim_Public
 										$locations_list = $this->wcmlim_get_all_locations();
 										$selected_location = $this->get_selected_location();
 										if ($isLocationsGroup == 'on') {
-											$storelocator_list = $this->wcmlim_get_all_store();
-										}
+											$storelocator_list = $this->wcmlim_get_all_store();										}
 										if (sizeof($locations_list) >= 0) { ?>											
 											<!-- default design Start-->
 											<div class="wcmlim-lc-switch">
@@ -2282,7 +2309,7 @@ class Wcmlim_Public
 																	</span>
 																</div>
 																<?php if ($useLc == "on") { ?>
-																	<div class="wclimlocsearch" style="display:">
+																	<div class="wclimlocsearch" style="display:none">
 																		<i id="currentLoc" class="fas fa-crosshairs">
 																			<a>Use Current Location</a> </i>
 																	</div>
@@ -2310,6 +2337,7 @@ class Wcmlim_Public
 								 */
                                 public function wcmlim_getdropdown_location()
 								{
+								
 									$termselect = isset($_POST['selectedstoreValue']) ? intval($_POST['selectedstoreValue']) : "";
 									$selected_location = $this->get_selected_location();
 									$isLocEx = get_option("wcmlim_exclude_locations_from_frontend");
@@ -3450,8 +3478,7 @@ class Wcmlim_Public
 
 								public function wcmlim_change_cookie_change_location()
 								{
-									$current_category = get_queried_object();
-									$location_id = $current_category->term_id;
+									$location_id = get_queried_object_id();
 									$setLocation = isset($_COOKIE['wcmlim_selected_location']) ? $_COOKIE['wcmlim_selected_location'] : "";
 									$exclExists = get_option("wcmlim_exclude_locations_from_frontend");
 									if (!empty($exclExists)) {
@@ -3525,7 +3552,10 @@ class Wcmlim_Public
 										}
 									}
 									
-									$all_ids = array_merge($all_ids, $vp_ids);
+									if(is_array($vp_ids)){
+										$all_ids = array_merge($all_ids, $vp_ids);
+									}
+									
 									//now get stock at locations for each products
 									foreach($all_ids as $pid){
 									   $stock_at_loc = get_post_meta($pid, "wcmlim_stock_at_{$term_ids}", true); 

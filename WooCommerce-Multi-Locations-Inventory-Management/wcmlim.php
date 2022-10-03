@@ -20,7 +20,7 @@
  * Plugin Name:       WooCommerce Multi Locations Inventory Management
  * Plugin URI:        http://www.techspawn.com
  * Description:       This plugin will help you manage WooCommerce Products stocks through locations.
- * Version:           3.2.0
+ * Version:           3.2.2
  * Requires at least: 4.9
  * Author:            Techspawn Solutions
  * Author URI:        http://www.techspawn.com
@@ -42,7 +42,7 @@ if (!defined('WPINC')) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define('WCMLIM_VERSION', '3.1.9');
+define('WCMLIM_VERSION', '3.2.2');
 /**
  * Define default path and url for plugin.
  *
@@ -146,6 +146,7 @@ require plugin_dir_path(__FILE__) . 'includes/class-wcmlim.php';
  */
 function wcmlim_run()
 {
+  update_option('wcmlim_license','valid');
   $plugin = new Wcmlim();
   $plugin->run();
 }

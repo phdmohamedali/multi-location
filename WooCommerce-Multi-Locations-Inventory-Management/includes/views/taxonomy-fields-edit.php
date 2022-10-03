@@ -71,7 +71,7 @@
         <input class="form-control" id="route" name="wcmlim_route" type="text" value="<?php esc_attr_e($route); ?>">
       </td>
     </tr>
-    <tr class="form-field form-required term-city-wrap">
+    <tr class="form-field term-city-wrap">
       <th scope="row" valign="top">
         <label class="" for="locality"><?php esc_html_e('City', 'wcmlim'); ?></label>
       </th>
@@ -79,7 +79,7 @@
         <input class="form-control" id="locality" name="wcmlim_locality" type="text" value="<?php esc_attr_e($locality); ?>">
       </td>
     </tr>
-    <tr class="form-field form-required term-state-wrap">
+    <tr class="form-field term-state-wrap">
       <th scope="row" valign="top">
         <label class="" for="administrative_area_level_1"><?php esc_html_e('State', 'wcmlim'); ?></label>
       </th>

@@ -250,6 +250,3 @@ table.prodcentral_bulk_edit {
 .prodcentral_bulk_edit th#sku {
   min-width: 140px;
 }
-.prodcentral_bulk_edit {
-  table-layout: unset !important;
-}

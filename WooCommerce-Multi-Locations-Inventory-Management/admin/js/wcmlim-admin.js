@@ -557,6 +557,8 @@ jQuery( document ).ready( ( $ ) =>
       jQuery( '#wcmlim_order_fulfil_edit' ).prop( 'checked', true );
       jQuery( '#wcmlim_order_fulfil_automatically' ).prop( 'checked', true );
       jQuery( '#wcmlim_allow_local_pickup' ).prop( 'checked', true );
+    }else {
+      jQuery( '#wcmlim_order_fulfil_edit' ).prop( 'checked', false );
     }
   } );
 
@@ -809,4 +811,3 @@ document.addEventListener( "wheel", function ( event )
     document.activeElement.blur();
   }
 } );
-  //no scroll for variation stocks -code end

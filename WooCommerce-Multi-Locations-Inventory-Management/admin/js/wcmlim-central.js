@@ -1,13 +1,14 @@
-pc = jQuery.noConflict();
-pc(function( $ ) {
-$('.prodcentral_bulk_edit').DataTable(
-{    
-    "scrollY": true,
-    "scrollX": true,
-    "lengthChange": false,   
-    "autoWidth": true,
-} );  
-
+jQuery( document ).ready( ( $ ) =>
+{
+ if (jQuery('.prodcentral_bulk_edit thead tr th').length > 0) {
+    $('.prodcentral_bulk_edit').DataTable(
+    {
+        "scrollY": true,
+        "scrollX": true,
+        "lengthChange": false,
+        "autoWidth": true,
+    } );
+}
 jQuery( 'ul.pctabs li' ).click( function ()
 {
   var tab_id = jQuery( this ).attr( 'data-tabid' );
@@ -82,6 +83,10 @@ jQuery('.prodcentral_bulk_edit tbody').on('change', 'td.manage_stock.column-mana
       "data-id": id,
       inp_value: inp_value,
       "data-name": data_name
+    },
+    success: function ()
+    {
+      location.reload();
     }
   } );
 } );   

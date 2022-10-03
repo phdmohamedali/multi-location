@@ -267,6 +267,14 @@ class Multiloc_Product_Central extends WP_List_Table
       $product_id = $value->ID;
       $product = wc_get_product($product_id);     
       
+      $prices = get_post_meta( $product_id, '_regular_price', true);
+      $price_sale = get_post_meta( $product_id, '_sale_price', true);
+      if ($price_sale <= $prices ) {
+          $validity =  "Valid";
+      } else {
+        $validity =  "Not Valid";
+      }
+
       $name  = sprintf('<label class="lbledit stckup_product_name" >%s</label><input class="clickedit" value="%s" data-name="stckup_product_name" data-id="%s" type="text" /><div class="clearfix"></div>', esc_html__($product->get_name(), 'stckup'), esc_html__($product->get_name(), 'stckup'), $product_id);
       if (!empty($product->get_sku())) {
         $sku =  sprintf('<label class="lbledit stckup_product_sku">%s</label><input class="clickedit" value="%s" data-id="%s" data-name="stckup_product_sku" type="text" /><div class="clearfix"></div>', esc_html__($product->get_sku(), 'stckup'), esc_html__($product->get_sku(), 'stckup'), $product_id);
@@ -279,8 +287,7 @@ class Multiloc_Product_Central extends WP_List_Table
       } else {
         $price = sprintf('<label class="lbledit stckup_product_regular_price" >%s</label><input class="clickedit" value="%s" data-id="%s" data-name="stckup_product_regular_price" type="text" /><div class="clearfix"></div>', '--', '--', $product_id);
       }
-
-      if (!empty($product->get_sale_price())) {
+      if (!empty($product->get_sale_price()) && $validity == 'Valid') {
         $sale_price = sprintf('<label class="lbledit stckup_product_sale_price" >%s</label><input class="clickedit" value="%s" data-id="%s" data-name="stckup_product_sale_price" type="text" /><div class="clearfix"></div>', esc_html__($product->get_sale_price(), 'stckup'), esc_html__($product->get_sale_price(), 'stckup'), $product_id);
       } else {
         $sale_price = sprintf('<label class="lbledit stckup_product_sale_price" >%s</label><input class="clickedit" value="%s" data-id="%s" data-name="stckup_product_sale_price" type="text" /><div class="clearfix"></div>', '--', '--', $product_id);
@@ -313,7 +320,7 @@ class Multiloc_Product_Central extends WP_List_Table
         } else {
           $backorderlbl = "Do not allow";
         }
-        $backorders  = sprintf('<label class="lbledit stckup_product_backorders" >%s</label><select class="clickedit bulk_product_backorder_edit" data-name="stckup_product_backorders" Pid="pid_' . $product_id . '"><option value="no">NO Backdoor</option><option value="notify">Backorder notify</option><option value="yes">yes backdoor</option></select><input class="pid_' . $product_id . '"  class="clickedit" data-name="stckup_product_backorders" data-id="%s" type="hidden" /><div class="clearfix"></div>', $backorderlbl , $product_id);
+        $backorders  = sprintf('<label class="lbledit stckup_product_backorders" >%s</label><select class="clickedit bulk_product_backorder_edit" data-name="stckup_product_backorders" Pid="pid_' . $product_id . '"><option value="-1">Select Below</option><option value="no">NO Backdoor</option><option value="notify">Backorder notify</option><option value="yes">yes backdoor</option></select><input class="pid_' . $product_id . '"  class="clickedit" data-name="stckup_product_backorders" data-id="%s" type="hidden" /><div class="clearfix"></div>', $backorderlbl , $product_id);
       } else {
         $backorders  = sprintf('<label class="lbledit stckup_product_backorders" >%s</label><input value="%s" class="clickedit" data-name="stckup_product_backorders" data-id="%s" type="text" /><div class="clearfix"></div>', '--', '--', $product_id);
       }
@@ -453,6 +460,13 @@ class Multiloc_Product_Central extends WP_List_Table
           foreach ($variations as $key => $variation) {
             $stock_at_variation_location = '';
             $product_variation = wc_get_product($variation['variation_id']);
+            $prices = get_post_meta( $variation['variation_id'], '_regular_price', true);
+            $price_sale = get_post_meta( $variation['variation_id'], '_sale_price', true);
+            if ($price_sale <= $prices ) {
+                $validity =  "Valid";
+            } else {
+              $validity =  "Not Valid";
+            }
            
             $variation_name = sprintf('<label class="stckup_product_name" >%s</label>', esc_html__($product_variation->get_name(), 'stckup'));
 
@@ -468,12 +482,12 @@ class Multiloc_Product_Central extends WP_List_Table
               $variation_price = sprintf('<label class="lbledit stckup_product_regular_price" >%s</label><input class="clickedit" value="%s" data-id="%s" data-name="stckup_product_regular_price" type="text" /><div class="clearfix"></div>', '--', '--', $variation['variation_id']);
             }
 
-            if (!empty($product_variation->get_sale_price())) {
+            if (!empty($product_variation->get_sale_price()) && $validity == 'Valid') {
               $variation_sale_price = sprintf('<label class="lbledit stckup_product_sale_price" >%s</label><input class="clickedit" value="%s" data-id="%s" data-name="stckup_product_sale_price" type="text" /><div class="clearfix"></div>',  esc_html__($product_variation->get_sale_price(), 'stckup'), esc_html__($product_variation->get_sale_price(), 'stckup'), $variation['variation_id']);
             } else {
               $variation_sale_price = sprintf('<label class="lbledit stckup_product_sale_price" >%s</label><input class="clickedit" value="%s" data-id="%s" data-name="stckup_product_sale_price" type="text" /><div class="clearfix"></div>', '--', '--', $variation['variation_id']);
             }
-
+            
             if ($product_variation->get_manage_stock() == 1) {
               $check_val = 'checked';
               $cus_stock_manage = 'Yes';
@@ -491,16 +505,16 @@ class Multiloc_Product_Central extends WP_List_Table
             }
 
             if (!empty($product_variation->get_stock_status())) {
-              if ($product->get_stock_status() == 'instock') {
+              if ($product_variation->get_stock_status() == 'instock') {
                 $checked_val = 'checked';
                 $cust_stock_val = 'Yes';
               } else {
                 $checked_val = '';
                 $cust_stock_val = 'No';
               }
-              $variation_stock_status = sprintf('<label class="switch"><input type="checkbox" ' . $checked_val . ' id="check_' . $product_id . '"><span class="slider round"></span></label><label class="stckup_product_stock_status check_' . $product_id . ' ' . $cust_stock_val . ' %s"> ' . $cust_stock_val . '</label><div class="empty_to_cll_action"> </div><input class="clickedit check_' . $product_id . '" data-id="%s" data-name="stckup_product_stock_status" type="hidden" /><div class="clearfix"></div>',  esc_html__($product->get_stock_status(), 'stckup'), $product_id);
+              $variation_stock_status = sprintf('<label class="switch"><input type="checkbox" ' . $checked_val . ' id="check_' . $variation['variation_id'] . '"><span class="slider round"></span></label><label class="stckup_product_stock_status check_' . $variation['variation_id'] . ' ' . $cust_stock_val . ' %s"> ' . $cust_stock_val . '</label><div class="empty_to_cll_action"> </div><input class="clickedit check_' . $variation['variation_id'] . '" data-id="%s" data-name="stckup_product_stock_status" type="hidden" /><div class="clearfix"></div>',  esc_html__($product_variation->get_stock_status(), 'stckup'), $variation['variation_id']);
             } else {
-              $variation_stock_status = sprintf('<label class="switch"><input type="checkbox" ' . $checked_val . ' id="check_' . $product_id . '"><span class="slider round"></span></label><label class="stckup_product_stock_status check_' . $product_id . ' ' . $cust_stock_val . '">%s</label><input class="clickedit check_' . $product_id . '" data-id="%s" data-name="stckup_product_stock_status" type="hidden" /><div class="clearfix"></div>', '--', $product_id);
+              $variation_stock_status = sprintf('<label class="switch"><input type="checkbox" ' . $checked_val . ' id="check_' . $variation['variation_id'] . '"><span class="slider round"></span></label><label class="stckup_product_stock_status check_' . $variation['variation_id'] . ' ' . $cust_stock_val . '">%s</label><input class="clickedit check_' . $variation['variation_id'] . '" data-id="%s" data-name="stckup_product_stock_status" type="hidden" /><div class="clearfix"></div>', '--', $variation['variation_id']);
             }
             $locations = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
             if (!empty($locations)) {
@@ -527,7 +541,20 @@ class Multiloc_Product_Central extends WP_List_Table
                   }
                 }
               }
-            }   
+            }
+            if (!empty($product_variation->get_backorders())) {
+              $backorderlbl =  $product_variation->get_backorders();
+              if ($backorderlbl == "notify") {
+                $backorderlbl = "Allow, but notify customer";
+              } else if($backorderlbl == "yes") {
+                $backorderlbl = "Allow";
+              } else {
+                $backorderlbl = "Do not allow";
+              }
+              $variation_backorders  = sprintf('<label class="lbledit stckup_product_backorders" >%s</label><select class="clickedit bulk_product_backorder_edit" data-name="stckup_product_backorders" Pid="pid_' . $variation['variation_id'] . '"><option value="Select Below">Select Below</option><option value="no">NO Backdoor</option><option value="notify">Backorder notify</option><option value="yes">yes backdoor</option></select><input class="pid_' . $variation['variation_id'] . '"  class="clickedit" data-name="stckup_product_backorders" data-id="%s" type="hidden" /><div class="clearfix"></div>', $backorderlbl ,$variation['variation_id']);
+            } else {
+              $variation_backorders  = sprintf('<label class="lbledit stckup_product_backorders" >%s</label><input value="%s" class="clickedit" data-name="stckup_product_backorders" data-id="%s" type="text" /><div class="clearfix"></div>', '--', '--',$variation['variation_id']);
+            }
             $vpr_id = sprintf('<label class="stckup_product_id" prdctID="' . $product_id . '" >%s</label>', $variation['variation_id']);        
             $product_all[] = array(
               "id" => $vpr_id,              
@@ -544,7 +571,7 @@ class Multiloc_Product_Central extends WP_List_Table
               'short_description' =>  $short_description,
               'description' =>  $description,             
               'status' =>  $status,             
-              'backorders' =>  $backorders,
+              'backorders' =>  $variation_backorders,
               'weight' =>  $weight,
               'length' =>  $length,
               'width' =>  $width,

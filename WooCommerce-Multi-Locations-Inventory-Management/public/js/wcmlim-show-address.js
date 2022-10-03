@@ -8,7 +8,7 @@ jQuery( document ).ready( function ( $ )
 
             url: admin_url.ajax_url,
             data: {
-                action: "show_address",
+                action: "wcmlim_show_address",
                 location_id: dropDownId,
             },
             success: function ( result )
@@ -25,11 +25,36 @@ jQuery( document ).ready( function ( $ )
                 var wcmlim_phone = response.wcmlim_phone;
                 if ( wcmlim_route == '' )
                 {
-                    var address = street_address + "," + " " + wcmlim_postcode + "," + " " + wcmlim_state + "," + " " + wcmlim_country_state;
+                    var address = '';
+                    if(street_address!= ''){
+                     address +=  street_address+',';
+                    }if(wcmlim_postcode!= ''){
+                     address +=  wcmlim_postcode+',';
+                    }
+                    if(wcmlim_state != ''){
+                     address +=  wcmlim_state+',';
+                    }
+                    if(wcmlim_country_state!= ''){
+                     address +=  wcmlim_country_state+',';
+                    }
                 }
                 else
                 {
-                    var address = street_address + "," + " " + wcmlim_route + "," + " " + wcmlim_postcode + "," + " " + wcmlim_state + "," + " " + wcmlim_country_state;
+                    var address = '';
+                    if(street_address!= ''){
+                     address +=  street_address+',';
+                    }if(wcmlim_route!= ''){
+                        address +=  wcmlim_route+',';
+                       }
+                    if(wcmlim_postcode!= ''){
+                     address +=  wcmlim_postcode+',';
+                    }
+                    if(wcmlim_state != ''){
+                     address +=  wcmlim_state+',';
+                    }
+                    if(wcmlim_country_state!= ''){
+                     address +=  wcmlim_country_state+',';
+                    }
                 }
                 if ( wcmlim_email != '' )
                 {
@@ -47,6 +72,7 @@ jQuery( document ).ready( function ( $ )
                 {
                     jQuery( '.local_pickup_address' ).html( '<p class="local_pickup_address_html">' + '' + '</p>' );
                 }
+                jQuery( 'body' ).trigger( 'update_checkout' );
             },
             error ( res )
             {

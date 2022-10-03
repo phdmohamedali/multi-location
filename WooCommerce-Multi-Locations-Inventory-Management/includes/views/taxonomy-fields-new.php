@@ -35,11 +35,11 @@ if( $isLocationsGroup == "on"){
   <label class="" for="route"><?php esc_html_e('Route', 'wcmlim'); ?></label>
   <input class="form-control" id="route" name="wcmlim_route" type="text">
 </div>
-<div class="form-field form-required term-city-wrap">
+<div class="form-field term-city-wrap">
   <label class="" for="locality"><?php esc_html_e('City', 'wcmlim'); ?></label>
   <input class="form-control" id="locality" name="wcmlim_locality" type="text" aria-required="true">
 </div>
-<div class="form-field form-required term-state-wrap">
+<div class="form-field term-state-wrap">
   <label class="" for="administrative_area_level_1"><?php esc_html_e('State', 'wcmlim'); ?></label>
   <input class="form-control" id="administrative_area_level_1" name="wcmlim_administrative_area_level_1" type="text" aria-required="true">
 </div>

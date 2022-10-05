@@ -152,4 +152,3 @@ function wcmlim_run()
 }
 
 wcmlim_run();
-update_option('wcmlim_license','valid');

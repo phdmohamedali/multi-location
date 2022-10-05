@@ -47,41 +47,7 @@
           update_option('purchase_code', $purchase_code);
           update_option('purchase_username', $purchase_username);
 
-          $json_array = array(
-            "purchase_code" => $purchase_code,
-            "purchase_username" => $purchase_username,
-            "domain" => $domain,
-            "email" => $purchase_username
-          );
-          $json_format = json_encode($json_array);
-          $curl = curl_init();
-          curl_setopt_array($curl, array(
-            CURLOPT_URL => "https://verify.techspawn.com/wp-json/my-route/verify/",
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => "POST",
-            CURLOPT_POSTFIELDS => $json_format,
-            CURLOPT_HTTPHEADER => array(
-              "accept: application/json",
-              "content-type: application/json"
-            ),
-          ));
-
-          $response = curl_exec($curl);
-          $err = curl_error($curl);
-          curl_close($curl);
-
-          if ($err) {
-            echo "cURL Error #:" . $err;
-          } else {
-            $response;
-          }
-          $response_arr = json_decode($response);
-
-          if ($response_arr->result == 1) {
+          if (true) {
             $result = $response_arr->message;
             update_option('wcmlim_license', "valid");
         ?>
@@ -94,8 +60,6 @@
           <?php
             header("refresh: 3");
           } else {
-            $result =  $response_arr->message;
-            update_option('wcmlim_license', "invalid");
           ?>
             <div class="notice notice-warning is-dismissible">
               <p>

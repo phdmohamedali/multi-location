@@ -1957,7 +1957,7 @@ class Wcmlim_Admin
       ?>
       <input type="number" min="0" id="<?php esc_attr_e($this->option_name . '_set_location_cookie_time') ?>" name="<?php esc_attr_e($this->option_name . '_set_location_cookie_time') ?>" value="<?php echo $locationCookieTime; ?>">
       <br>
-      <?php echo '<label class="wcmlim-setting-option-des">' . __('Extend the default cookie time in your browser <b>Note - Entered value considerd in days</b>', 'wcmlim') . '</label>'; ?>
+      <?php echo '<label class="wcmlim-setting-option-des">' . __('The default cookie time is 30.<br/>Extend the default cookie time in your browser <b>Note - Entered value considerd in days</b>', 'wcmlim') . '</label>'; ?>
     <?php
     }
 
@@ -4754,14 +4754,23 @@ public function wcmlim_sync_on_product_save( $meta_id, $post_id, $meta_key, $met
         wc_delete_product_transients( $data_id );
       }
       if ($data_name == "stckup_product_sale_price") {
-        update_post_meta($data_id, '_sale_price', $inp_value);
-        if ($inp_value != null || $inp_value != false) {
-          update_post_meta($data_id, '_price', $inp_value);
-        } else {
-          $chk_v = get_post_meta($data_id, '_regular_price', true); 
-          update_post_meta($data_id, '_price', $chk_v);
-        }       
+        $chk_val = get_post_meta($data_id, '_regular_price', true); 
+        if($chk_val > $inp_value){
+          if ($inp_value != null || $inp_value != false) {
+            update_post_meta($data_id, '_price', $inp_value);
+            update_post_meta($data_id, '_sale_price', $inp_value);
+          } else {
+            $chk_v = get_post_meta($data_id, '_regular_price', true); 
+            update_post_meta($data_id, '_price', $chk_v);
+          } 
+        }else {
+          update_post_meta($data_id, '_sale_price','--');
+          $updatestatus=1;
+        }
+        
         wc_delete_product_transients( $data_id );
+        echo json_encode($updatestatus);
+        die();
       }      
       if ($data_name == "stckup_product_stock_status") {
         update_post_meta($data_id, '_stock_status', $inp_value);
@@ -4970,7 +4979,6 @@ public function wcmlim_get_lcpriority(){
   }
   public function wcmlim_submit_feedback()
   {
-    //print('hello');
     $selected_feedback_option= $_POST['selected_option'];
     $user_email_id= $_POST['UserEmail'];
     $domain= home_url();
@@ -5001,7 +5009,6 @@ public function wcmlim_get_lcpriority(){
             ),
           ));
           $response = curl_exec($curl);
-          //print($response);
           $err = curl_error($curl);
           curl_close($curl);           
           echo $response;

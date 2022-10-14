@@ -60,6 +60,7 @@ class Wcmlim_Backend_Only_Mode
     add_action("woocommerce_payment_complete", [$plugin_public, "wcmlim_maybe_reduce_stock_levels"]);
     add_action('woocommerce_order_status_completed', [$plugin_public, "wcmlim_maybe_reduce_stock_levels"]);
     add_action('woocommerce_order_status_processing', [$plugin_public, "wcmlim_maybe_reduce_stock_levels"]);
+    add_action('woocommerce_order_status_cancelled', [$plugin_public, 'wcmlim_maybe_increase_stock_levels']);
     add_action('woocommerce_order_status_on-hold', [$plugin_public, "wcmlim_maybe_reduce_stock_levels"]);
     add_action( 'wp_enqueue_scripts', 'pr_cycle_scripts' );
     function pr_cycle_scripts (){

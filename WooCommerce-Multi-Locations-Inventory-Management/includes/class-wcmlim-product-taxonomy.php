@@ -26,6 +26,7 @@ class Wcmlim_Product_Taxonomy
     add_action('locations_add_form_fields', array($this, 'formFields'), 10, 2);
     add_action('edited_locations', array($this, 'formSave'), 10, 2);
     add_action('created_locations', array($this, 'formSave'), 10, 2);
+    add_action( "delete_locations", array($this, 'execute_on_delete_locations'), 10, 4);
     add_filter('locations_row_actions', array($this, 'disable_quick_edit'), 10, 2);
     add_filter('manage_edit-location_group_columns', array($this, 'editColumns_locgroup'));
     add_filter( 'location_group_row_actions', array($this, 'editColumnsactions'), 10, 2);
@@ -194,13 +195,36 @@ class Wcmlim_Product_Taxonomy
     if ($post->taxonomy !== "locations") {
       return $actions;
     }
-
+    
     if (isset($actions['inline hide-if-no-js'])) {
       unset($actions['inline hide-if-no-js']);
     }
 
     return $actions;
   }
+    /**
+   * Update stock on deleting locations
+   * 
+   */
+  public function execute_on_delete_locations($term, $tt_id, $deleted_term, $object_ids){
+    //You can write code here to be executed when this action occurs in WordPress. Use the parameters received in the function arguments & implement the required additional custom functionality according to your website requirements.
+    $args = array(
+      'post_type'  => 'product',
+       'numberposts' => -1,
+    );
+      $product_info = get_posts($args);
+      foreach ($product_info as $key => $value) {
+      $total = 0;
+          $product_id = $value->ID;
+          $product = wc_get_product($product_id);
+      $locations = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false));
+          foreach ($locations as $location) {
+            $total +=  intval(get_post_meta($product_id, "wcmlim_stock_at_{$location->term_id}", true));
+          }        
+          update_post_meta($product_id, '_stock', $total);
+
+      } 
+ }
   /**
    * Form fields
    *
@@ -361,7 +385,6 @@ class Wcmlim_Product_Taxonomy
    */
   public function formSave($term_id)
   {
-
     $autofill = get_option('wcmlim_enable_autocomplete_address');
     if ($_POST) {
       $shippingZone = isset($_POST['wcmlim_shipping_zone']) ? (array) $_POST['wcmlim_shipping_zone'] : array();
@@ -556,4 +579,7 @@ class Wcmlim_Product_Taxonomy
       update_option("taxonomy_$term_id", $term_meta);
     }
   }
+
+
+
 }

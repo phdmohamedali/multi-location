@@ -53,6 +53,25 @@ For documentation visit our [Website](https://techspawn.com/docs/woocommerce-mul
 == Screenshots ==
 
 == Changelog ==
+= Version 3.2.3 =
+Fix:Total stock is not reducing after deleting the location.
+
+== Changelog ==
+= Version 3.2.2= October 01, 2022
+[Fix] Simplify backend-only mode settings.
+[Fix] Backorder setting is not working for variable product
+[Fix] The checkout page is always loading with Backend only modes 2nd rule 
+[Fix] Show address details >It displays the street address twice on the product details page with list view.
+[Fix] Hide the location dropdown on the product page if the stock status for a specific product variation is disabled.
+
+== Changelog ==
+= Version 3.2.1= September 24, 2022
+[Fix] Facing error on checkout page "Error processing checkout. Please try again" Can't place an order.
+[Fix] Local pickup location(Back end only mode) Issue for both simple and variable product
+[Fix] Added validation > Multilocation > Local Pickup location when the product stock is 0
+
+
+== Changelog ==
 = Version 3.2.0 =
 Fix: UI and UX fixes
 Fix: Stock Notification[Total Stock == Location Stock]

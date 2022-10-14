@@ -107,21 +107,12 @@ form#Product_Central_Setting label.switch {
 }
 /*tab css end*/
 
-.multi-locations_page_wcmlim-product-central td.stock_status.column-stock_status .switch, form#Product_Central_Setting .switch 
-{
-  width: 50px;
-  height: 26px;
-}
+
 .multi-locations_page_wcmlim-product-central td.stock_status.column-stock_status .switch input:checked + .slider, form#Product_Central_Setting .switch input:checked + .slider {
   background-color: rgb(100, 189, 99);
   border-color: rgb(100, 189, 99);
 }
-.multi-locations_page_wcmlim-product-central td.stock_status.column-stock_status .switch .slider:before, form#Product_Central_Setting .switch .slider:before {
-  height: 23px;
-  width: 23px;
-  bottom: 2px;
-  left: 2px;
-}
+
 .multi-locations_page_wcmlim-product-central td.stock_status.column-stock_status .switch input:checked + .slider::before, form#Product_Central_Setting .switch input:checked + .slider::before {
   left: 4px;
 }

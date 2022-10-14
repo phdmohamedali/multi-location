@@ -441,12 +441,11 @@ jQuery( document ).ready( ( $ ) =>
       $( ".wcmlimvalidateGMAPI" ).html( "Validate" );
     } else
     {
-      Swal.fire( {
-        icon: "error",
-        html: "Please enter Google API Key and try again",
-        showConfirmButton: false,
-        timer: 2000,
-      } );
+      alertify.set( "notifier", "position", "bottom-right" );
+      alertify.set( "notifier", "delay", 8 );
+      alertify.error(
+      "Please enter Google API Key and try again"
+      );
       $( ".wcmlimvalidateGMAPI" ).html( "Validate" );
     }
 

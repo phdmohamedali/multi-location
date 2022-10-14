@@ -203,6 +203,7 @@ jQuery('.prodcentral_bulk_edit tbody').on('change focusout', 'td.column-stock_at
         }
     } );
 } );
+
 function endEdit ( e )
 {  
   alertify.dismissAll();
@@ -220,16 +221,21 @@ function endEdit ( e )
       "data-id": id,
       inp_value: inp_value,
       "data-name": data_name
+    },
+    success (result){ 
+     if(result == 1){
+        alertify.error( "Please enter in a value less than the regular price" );
+      }else{
+        alertify.success( "Product Updated" );
+      }
+      input.hide();
+      label.show();
+      location.reload();
     }
-  } );
- 
+  } ); 
 
-  
-  alertify.success( "Product Updated" );
-  input.hide();
-  label.show();
-  location.reload();
 } 
+
 /**
  * Save column settings
  */

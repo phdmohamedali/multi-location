@@ -107,6 +107,7 @@ if (($fulfilment_rule == "locappriority") || ($fulfilment_rule == "clcsadd")) {
   <div class="per-18">Close at - </div>
   <div class="per-40"> <input class="form-control" value="" id="end_time" name="wcmlim_end_time" type="time"> </div>
 </div>
+<span class="alert-text" style="color: #e32!important;"></span>
 <?php $esp = get_option("wcmlim_assign_location_shop_manager");
 if ($esp == "on") { ?>
   <div class="form-field term-shopManager-wrap">
@@ -204,3 +205,20 @@ if($locationRadius == "on"){
 <?php
 }
 ?>
+<script>
+  jQuery( document ).ready( function ( $ )
+{
+
+    $("#postal_code, #tag-name, #country").on("input", function(e) {
+        var postal_code = $('#postal_code').val();
+        var country = $('#country').val();
+        if (postal_code == '' || country == ''){
+            $('#submit').attr("disabled", true);
+            $('.alert-text').text('Please fill all mandatory fields.').show();  
+        }else{
+            $('#submit').attr('disabled', false);
+            $('.alert-text').hide();
+        }
+     });
+    })
+</script>

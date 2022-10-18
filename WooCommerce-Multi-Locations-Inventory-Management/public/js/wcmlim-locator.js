@@ -1,7 +1,7 @@
 jQuery( document ).ready( function ( $ )
 {
   $.noConflict();
-  $( ".wcmlim_storeloc  #wcmlim-change-lc-select option" ).hide();
+  $( ".wcmlim_storeloc  .wcmlim-change-lc-select option" ).hide();
   const { ajaxurl } = multi_inventory;
   $( "#wcmlim-change-sl-select, #wcmlim-change-sl-select option" ).on( "change", function ()
   {
@@ -28,10 +28,10 @@ jQuery( document ).ready( function ( $ )
         {
           var size = Object.keys( locat ).length;
           $( ".wcmlim-lc-select" ).prepend(
-            `<option value="-1" selected="selected" disabled="disabled" >Please Select</option>`
+            `<option value="-1" selected="selected"  >Please Select</option>`
           );
           $( "#wcmlim-change-lcselect" ).prepend(
-            `<option value="-1" selected="selected" disabled="disabled" >Please Select</option>`
+            `<option value="-1" selected="selected"  >Please Select</option>`
           );
           $.each( data, function ( i, value )
           {

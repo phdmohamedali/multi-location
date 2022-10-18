@@ -15,10 +15,10 @@
       case "select":
         // console.log( "in select" );
         $( "#set-def-store .rlist_location, #set-def-store .postcode-checker" ).hide();
-        if ( !$( "#set-def-store #wcmlim-change-lc-select" ).is( ":visible" ) )
+        if ( !$( "#set-def-store .wcmlim-change-lc-select" ).is( ":visible" ) )
         {
-          $( "#set-def-store #wcmlim-change-lc-select" ).removeAttr( "style" );
-          jQuery( "#set-def-store #wcmlim-change-lc-select" ).css( "display", "block" );
+          $( "#set-def-store .wcmlim-change-lc-select" ).removeAttr( "style" );
+          jQuery( "#set-def-store .wcmlim-change-lc-select" ).css( "display", "block" );
         }
         break;
 
@@ -31,7 +31,7 @@
 
       case "list":
         console.log( "in list" );
-        $( "#set-def-store .postcode-checker, #wcmlim-change-lc-select" ).hide();
+        $( "#set-def-store .postcode-checker, .wcmlim-change-lc-select" ).hide();
         $( "#set-def-store .rlist_location" ).show();
         break;
       default:

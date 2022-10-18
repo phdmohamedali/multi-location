@@ -261,9 +261,11 @@ class Wcmlim_Admin
    *
    * @since    1.0.0
    */
-
+ 
   public function wcmlim_register_menu_page()
-  {
+  { 
+    if ( class_exists( 'WooCommerce' ) ) {
+  
     $isLocationsGroup = get_option('wcmlim_enable_location_group');
     add_menu_page(
       __('Multi Locations', 'wcmlim'),
@@ -372,7 +374,14 @@ class Wcmlim_Admin
         array($this, 'wcmlim_addon_settings')
       );
     }
-    
+  }else {
+    echo "WooCommerce has not yet been installed or activated. WooCommerce Multi Locations Inventory Management is a WooCommerce Extension that will only function if WooCommerce is installed. Please first install and activate the WooCommerce Plugin.
+    ";
+    ?>
+    <br> <br>
+    <a href="plugins.php" target="_blank">Back </a>
+    <?php
+    }
   }
 
   /**
@@ -2285,7 +2294,7 @@ class Wcmlim_Admin
         <span class="slider round"></span>
       </label>
       <br />
-      <?php echo '<label class="wcmlim-setting-option-des">' . __('If we enable Calculate Distance by co-ordinates. In this s case, Latitude and longitude are calculated based on the selected address.This setting is used for Nearby Location finder.', 'wcmlim') . '</label>'; ?>
+      <?php echo '<label class="wcmlim-setting-option-des">' . __('If we enable Calculate Distance by co-ordinates. In this case, Latitude and longitude are calculated based on the selected address.This setting is used for Nearby Location finder.', 'wcmlim') . '</label>'; ?>
     <?php
     }
 
@@ -3651,7 +3660,6 @@ public function wcmlim_sync_on_product_save( $meta_id, $post_id, $meta_key, $met
         update_post_meta($product_id, '_stock_status', 'outofstock');
       } 
       wc_delete_product_transients( $product_id ); // Update product cache
-      
       echo $location_stock;      
       wp_die();
     }
@@ -4879,8 +4887,100 @@ public function wcmlim_sync_on_product_save( $meta_id, $post_id, $meta_key, $met
   }
 
   public function support_validator_admin_notice() {  
-    $wcmlim_validte = get_option('wcmlim_license', true);
-    return $wcmlim_validte;
+	  $wcmlim_validte = get_option('wcmlim_license', true);
+	  if($wcmlim_validte != 'invalid')
+	  {		 
+      $user = wp_get_current_user();
+      $buyer_email = $user->user_email;
+      $purchase_code = get_option('purchase_code');
+      $purchase_username = get_option('purchase_username');
+      @update_option('date', $date);
+      $url = get_site_url();
+      $domain_str = parse_url($url, PHP_URL_HOST);
+      $domain = str_replace('www.', '', $domain_str);
+      if(!function_exists('wp_get_current_user')) {
+        include(ABSPATH . "wp-includes/pluggable.php"); 
+      }
+      $json_array = array(
+        "purchase_code" => $purchase_code,
+        "purchase_username" => $purchase_username,
+        "domain" => $domain,
+        "email" => $purchase_username
+      );
+      $json_format = json_encode($json_array);
+
+      $curl = curl_init();
+      curl_setopt_array($curl, array(
+      CURLOPT_URL => "https://verify.techspawn.com/wp-json/my-route/support/",
+      CURLOPT_RETURNTRANSFER => true,
+      CURLOPT_ENCODING => "",
+      CURLOPT_MAXREDIRS => 10,
+      CURLOPT_TIMEOUT => 30,
+      CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+      CURLOPT_CUSTOMREQUEST => "POST",
+      CURLOPT_POSTFIELDS => $json_format,
+      CURLOPT_HTTPHEADER => array(
+      "accept: application/json",
+      "content-type: application/json"
+      ),
+      ));
+
+      $response = curl_exec($curl);
+      $err = curl_error($curl);
+      curl_close($curl);
+
+      if ($err) {
+        echo "cURL Error #:" . $err;
+      } else {
+        $response;
+      }
+      $response_arr = json_decode($response);      
+      if (isset($response_arr->result) && $response_arr->result == 1) {
+        $result = $response_arr->message;
+        $supported_until = $response_arr->supported_until;
+        $supported_until = date("d-m-Y", strtotime($supported_until));
+        $now = time(); // or your date as well
+        $support_date = strtotime($response_arr->supported_until);
+        $datediff = $support_date - $now;
+        $difffound =  round($datediff / (60 * 60 * 24));
+        if (strpos($difffound, '-') !== false) {
+            ?>
+            <div class="notice notice-error is-dismissible">
+            <p>
+              Your support for <b><?php echo $response_arr->product; ?></b> has been expired, please <a href ="<?php echo $response_arr->url; ?>">Click here to renew your support</a>
+            </p>
+          </div>
+            <?php
+        }
+        else
+        {
+          if($difffound < 8)
+          {
+            ?>
+          <div class="notice notice-warning is-dismissible">
+            <p>
+            Your support for <b><?php echo $response_arr->product; ?></b> expires in <b><?php echo $difffound; ?> Days</b>, please <a href ="<?php echo $response_arr->url; ?>">Click here to renew your support</a>
+            </p>
+          </div>
+          <?php
+          }
+        }
+        update_option('wcmlim_license', "valid");  
+      }
+      else 
+      {
+        ?>
+        <div class="notice notice-error is-dismissible">
+        <p><?php        
+        if (isset($response_arr->error_message)) {
+          echo $response_arr->message; 
+        }
+        ?></p>
+        </div>
+        <?php
+        update_option('wcmlim_license', "invalid");            
+      }      
+    }
   }
   public function wcmlim_deactivate_plugin()
   {
@@ -4888,12 +4988,31 @@ public function wcmlim_sync_on_product_save( $meta_id, $post_id, $meta_key, $met
     deactivate_plugins( '/WooCommerce-Multi-Locations-Inventory-Management/wcmlim.php' ); 
   }
 
+  public function wcmlim_restore_stock_after_order_refund( $product_get_id,$old_stock,$new_stock,$order,$product ){ 
+    $line_item_qtys         = isset( $_POST['line_item_qtys'] ) ? json_decode( sanitize_text_field( wp_unslash( $_POST['line_item_qtys'] ) ), true ) : array();
+	  $product_get_id =  $product_get_id;
+    $item_stock_toupdate =  $new_stock -  $old_stock;    
+    foreach ( $order->get_items() as $item_id => $item ) {    
+      $v = $item_id;
+      $tid = wc_get_order_item_meta( $v, '_selectedLocTermId');
+      $product_id = $item->get_variation_id() ? $item->get_variation_id() : $item->get_product_id();   
+      if( $product_id == $product_get_id ) {
+        $current_product_stock = get_post_meta($product_get_id, "wcmlim_stock_at_{$tid}", true);
+        $update_new_stock = (int)$current_product_stock + (int)$item_stock_toupdate;
+        update_post_meta($product_get_id, "wcmlim_stock_at_{$tid}", $update_new_stock);
+        $note = "{ Max level -> Stock levels reduced: {$item->get_name()}  from Location: {$termname} {$current_product_stock} &rarr; {$update_new_stock} }";
+        $order->add_order_note($note);
+      } 
+      $termname = get_term($tid)->name;   
+    } 
+    wc_delete_product_transients( $product_get_id );     
+  }
+
    /**
    * Callback function for getting lat lng once
    * 
    * @since 1.2.14
    */
-
    
 public function wcmlim_get_lcpriority(){
   $lcpriority = $_POST['lcpriority'];

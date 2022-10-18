@@ -262,7 +262,18 @@ class Wcmlim_Public
 	public function wcmlim_closest_location()
 	{
 		$coordinates_calculator      = get_option('wcmlim_distance_calculator_by_coordinates');
-		
+		$origins = '';
+		if (isset($_POST['postcode'])) {
+			$ladd = str_replace(",", "", $_POST['postcode']);
+			$origins = str_replace(" ", "+", $ladd);
+		}
+		else
+		{
+			$nearby_location = isset($_COOKIE['wcmlim_nearby_location']) ? $_COOKIE['wcmlim_nearby_location'] : "";
+			$ladd = str_replace(",", "", $nearby_location);
+			$origins = str_replace(" ", "+", $ladd);
+		}
+		$return_dis_unit = get_option("wcmlim_show_location_distance", true);
 		if($coordinates_calculator != '')
         {
 		
@@ -274,13 +285,6 @@ class Wcmlim_Public
 		if(!empty($variation_id))
 		{
 			$product_id = $variation_id;
-		}
-
-		$nearby_location = isset($_COOKIE['wcmlim_nearby_location']) ? $_COOKIE['wcmlim_nearby_location'] : "";
-		
-		if (isset($_POST['postcode'])) {
-			$ladd = str_replace(",", "", $_POST['postcode']);
-			$origins = str_replace(" ", "+", $ladd);
 		}
 		$dis_unit = get_option("wcmlim_show_location_distance", true);
 
@@ -478,10 +482,6 @@ class Wcmlim_Public
 			$second_address = $second_streetNumber . $second_route . $second_locality . $second_state . $second_postal_code . $second_country;
 		
 			
-		if (isset($__seleOrigin[0])) {
-			$origins = $__seleOrigin[0];
-		}
-		$nearby_location = isset($_COOKIE['wcmlim_nearby_location']) ? $_COOKIE['wcmlim_nearby_location'] : "";		
 		$res = array(
 			"status"=> "true",
 			"globalpin"=> "true",
@@ -491,22 +491,26 @@ class Wcmlim_Public
 			"secNearLocAddress"=> $second_address,
 			"secNearStoreDisUnit"=> $nearby_second_loc_ret_distance,
 			"secNearLocKey"=> $nearby_second_loc_key,
+			"return_dis_unit"=> $return_dis_unit,
 			"cookie"=> $nearby_location
 		);
+		if (isset($_POST['postcode'])) {
+			$ladd = str_replace(",", "", $_POST['postcode']);
+			$origins = str_replace(" ", "+", $ladd);
+		}
+		if (isset($ladd)) {
+			setcookie("wcmlim_nearby_location", $ladd, time() + 36000, '/');
+		}
 		echo json_encode($res);
         die();
 			
 		}
 		else
 		{			
-		$nearby_location = isset($_COOKIE['wcmlim_nearby_location']) ? $_COOKIE['wcmlim_nearby_location'] : "";
-		$globalPincheck = isset($_POST['globalPin']) ? $_POST['globalPin'] : false;
-		$product_id  = isset($_POST['product_id']) ? intval($_POST['product_id']) : "";
+			$globalPincheck = isset($_POST['globalPin']) ? $_POST['globalPin'] : false;
+			$product_id  = isset($_POST['product_id']) ? intval($_POST['product_id']) : "";
 		$variation_id = isset($_POST['variation_id']) ? intval($_POST['variation_id']) : "";
-		if (isset($_POST['postcode'])) {
-			$ladd = str_replace(",", "", $_POST['postcode']);
-			$origins = str_replace(" ", "+", $ladd);
-		}
+		
 		$dis_unit = get_option("wcmlim_show_location_distance", true);
 		$lat = isset($_POST['lat']) ? $_POST['lat'] : "";
 		$lng = isset($_POST['lng']) ? $_POST['lng'] : "";
@@ -549,11 +553,7 @@ class Wcmlim_Public
 			$postcode[] = isset($term_meta['wcmlim_postcode']) ? $term_meta['wcmlim_postcode'] : "";
 			$wcountry[] = isset($term_meta['wcmlim_country_state']) ? $term_meta['wcmlim_country_state'] : "";
 		}
-		if (isset($__seleOrigin[0])) {
-			$origins = $__seleOrigin[0];
-		}
 	
-		
         $destcount = count($dest);
 		if ( $destcount <= 20 ) 
             {				
@@ -579,8 +579,7 @@ class Wcmlim_Public
                 echo json_encode($response_array);
                 die();
             }
-			
-            foreach ($response_arr->rows as $r => $t) {
+			foreach ($response_arr->rows as $r => $t) {
                 foreach ($t as $key => $value) {
                     foreach ($value as $a => $b) {
                         if ($b->status == "OK") {
@@ -636,11 +635,10 @@ class Wcmlim_Public
                     }
                 }
             }
-			$dis_in_unit = '';
-            $dis_key =  '';
+
 			if(isset($distance)){
 				$dis_in_unit = (is_array($distance)) ? min($distance)['plaindis'] : '';
-            $dis_key = (is_array($distance)) ? min($distance)['key'] : '';
+           		$dis_key = (is_array($distance)) ? min($distance)['key'] : '';
 			}
 			
 		
@@ -648,16 +646,17 @@ class Wcmlim_Public
                 if ($k == $dis_key) {
                     $lcAdd = str_replace(",", "", $v);
                     if ($lcAdd) {
+
                         // getting second nearest location
-                        $secNLocation = $this->getSecondNearestLocation($distance, $dis_unit, $product_id);
+                     	$secNLocation = $this->getSecondNearestLocation($distance, $dis_unit, $product_id);
+						 
+						$search_origin_distance = $this->getDistanceFromOrigin($_POST['selectedLocationId'],$origins,$product_id);
 						$serviceRadius = $this->getLocationServiceRadius($dis_key);
-					
 						if(empty($secNLocation[0]))
 						{
 							$secNearLocAddress = $lcAdd;
 							$secNearLocKey = $dis_key;
 							$secNearStoreDisUnit = $dis_in_unit;
-
 						}
 						else
 						{
@@ -669,18 +668,25 @@ class Wcmlim_Public
                         $response_array["globalpin"] = "true";
                         $response_array["loc_address"] = $lcAdd;
                         $response_array['loc_key'] = $dis_key;
+						$response_array['fetch_origin_distance'] = $search_origin_distance;
                         $response_array['loc_dis_unit'] = $dis_in_unit;
+                        $response_array['current_dis_unit'] = $dis_in_unit;
                         $response_array["secNearLocAddress"] = $secNearLocAddress;
                         $response_array['secNearStoreDisUnit'] = $secNearStoreDisUnit;
                         $response_array['secNearLocKey'] = $secNearLocKey;
-						$response_array["cookie"] = $nearby_location;
+						$response_array["cookie"] = $origins;
+						$response_array["return_dis_unit"] = $return_dis_unit;
 						if(isset($serviceRadius)){
 							$response_array['locServiceRadius'] = $serviceRadius;
 						}
-                        if (isset($ladd)) {
-                            setcookie("wcmlim_nearby_location", $ladd, time() + 36000, '/');
-                        }
-                        update_option('wcmlim_location_distance', $dis_in_unit);
+                        if (isset($_POST['postcode'])) {
+							$ladd = str_replace(",", "", $_POST['postcode']);
+							$origins = str_replace(" ", "+", $ladd);
+						}
+						if (isset($ladd)) {
+							setcookie("wcmlim_nearby_location", $ladd, time() + 36000, '/');
+						}
+                        update_option('wcmlim_location_distance', $dis_in_unit.' '.$return_dis_unit);
                         echo json_encode($response_array);
                         wp_die();
                     }
@@ -795,12 +801,17 @@ class Wcmlim_Public
 							$response_array["secNearLocAddress"] = $secNLocation[0];
 							$response_array['secNearStoreDisUnit'] = isset($secNLocation[1]) ? $secNLocation[1] : "";
 							$response_array['secNearLocKey'] = $secNLocation[2];
-							$response_array["cookie"] = $nearby_location;
+							$response_array["cookie"] = $origins;
+							$response_array["return_dis_unit"] = $return_dis_unit;						
+							update_option('wcmlim_location_distance', $dis_in_unit.' '.$return_dis_unit);
+							echo json_encode($response_array);
+							if (isset($_POST['postcode'])) {
+								$ladd = str_replace(",", "", $_POST['postcode']);
+								$origins = str_replace(" ", "+", $ladd);
+							}
 							if (isset($ladd)) {
 								setcookie("wcmlim_nearby_location", $ladd, time() + 36000, '/');
 							}
-							update_option('wcmlim_location_distance', $dis_in_unit);
-							echo json_encode($response_array);
 							wp_die();
 						};
 					}
@@ -811,6 +822,13 @@ class Wcmlim_Public
 				$response_array["message"] = _e('Not found any location.', 'wcmlim');
 				$response_array["status"] = "false";
 				$response_array["cookie"] = $nearby_location;
+				if (isset($_POST['postcode'])) {
+					$ladd = str_replace(",", "", $_POST['postcode']);
+					$origins = str_replace(" ", "+", $ladd);
+				}
+				if (isset($ladd)) {
+					setcookie("wcmlim_nearby_location", $ladd, time() + 36000, '/');
+				}
 				echo json_encode($response_array);
 				die();
 			}		
@@ -882,6 +900,68 @@ class Wcmlim_Public
 		}
 		$secNearStore[] = $secondNearLocKey;
 		return $secNearStore;
+	}
+
+
+	public function getDistanceFromOrigin($locId, $origins, $product_id)
+	{
+		global $dis_in_un;
+		$isExcLoc = get_option("wcmlim_exclude_locations_from_frontend");
+		if (!empty($isExcLoc)) {
+			$terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0, 'exclude' => $isExcLoc));
+		} else {
+			$terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
+		}
+		$fetch_seleOrigin = '';
+		foreach ($terms as $in => $term) {
+			if ($locId != '') {
+				if ($in == $locId) {
+					$term_meta = get_option("taxonomy_$term->term_id");
+					$term_meta = array_map(function ($term) {
+						if (!is_array($term)) {
+							return $term;
+						}
+					}, $term_meta);
+					$__spare = implode(" ", array_filter($term_meta));
+					$fetch_seleOrigin = str_replace(" ", "+", $__spare);
+				}
+			}
+		}
+			$google_api_key = get_option('wcmlim_google_api_key');			
+		
+		$curl = curl_init();
+		curl_setopt_array($curl, array(
+			CURLOPT_URL => "https://maps.googleapis.com/maps/api/distancematrix/json?units=metrics&origins=" . $origins . "&destinations=" . $fetch_seleOrigin . "&key={$google_api_key}",
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_ENCODING => "",
+			CURLOPT_MAXREDIRS => 10,
+			CURLOPT_TIMEOUT => 0,
+			CURLOPT_FOLLOWLOCATION => true,
+			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+			CURLOPT_CUSTOMREQUEST => "GET",
+		));
+		$response = curl_exec($curl);
+		$response_arr = json_decode($response);
+		curl_close($curl);
+		if (isset($response_arr->error_message)) {
+			$response_array["message"] = $response_arr->error_message;
+			$response_array["status"] = "false";
+		}
+			foreach ($response_arr->rows as $r => $t) {
+                foreach ($t as $key => $value) {
+                    foreach ($value as $a => $b) {
+                        if ($b->status == "OK") {
+							$dis_unit = get_option("wcmlim_show_location_distance", true);
+if ($dis_unit == "kms") {
+                                $dis_in_un = $b->distance->text;
+                            } else {
+                                $dis_in_un = round($b->distance->text * 0.621, 1) . ' miles';
+                            } 
+                        }
+                    }
+                }
+            }
+			return $dis_in_un;		
 	}
 
 	public function checkLocInstockOrNot($locIndex, $terms, $product_id)
@@ -2044,6 +2124,7 @@ class Wcmlim_Public
 																	 else{
 																		$response[$k]['text'] = $term->name . ' - ' . __('Out of Stock', 'woocommerce');
 																		$response[$k]['location_class'] = "wclimloc_". $term->slug;
+																		$response[$k]['location_address'] = $term_location;
 																	}
 																	if (!empty($stock_regular_price)) {
 																		$response[$k]['regular_price'] = wc_price($stock_regular_price);
@@ -2176,7 +2257,7 @@ class Wcmlim_Public
 															if($lcselect == 'on'){
 															echo "wcmlim-lc-select-2";
 															}
-															?>" id="wcmlim-change-lc-select">
+															?>" id="wcmlim-change-lc-select "class="wcmlim-change-lc-select">
 																<option value="-1" <?php if (!$selected_location) echo "selected='selected'"; ?>><?php _e('Please Select', 'wcmlim') ?></option>
 															
 															</select>
@@ -2190,7 +2271,7 @@ class Wcmlim_Public
 																<?php 
 																if(isset($roles[0]) && $roles[0] == 'customer'){ 
 																	?>
-																	<select name="wcmlim_change_lc_to" class="wcmlim-lc-select" id="wcmlim-change-lc-select">
+																	<select name="wcmlim_change_lc_to" class="wcmlim-lc-select wcmlim-change-lc-select" id="wcmlim-change-lc-select">
 																	<option value="-1" <?php if (!$selected_location) echo "selected='selected'"; ?>><?php _e('Select', 'wcmlim') ?></option>
 																	<?php
 																	
@@ -2223,7 +2304,7 @@ class Wcmlim_Public
 																<?php }
 																else{ ?>
 
-																<select name="wcmlim_change_lc_to" class="wcmlim-lc-select" id="wcmlim-change-lc-select">
+																<select name="wcmlim_change_lc_to" class="wcmlim-lc-select wcmlim-change-lc-select" id="wcmlim-change-lc-select">
 																<option value="-1" <?php if (!$selected_location) echo "selected='selected'"; ?>><?php _e('Select', 'wcmlim') ?></option>
 																<?php
 																foreach ($locations_list as $key => $loc) {
@@ -2260,7 +2341,7 @@ class Wcmlim_Public
 																		$globpin = isset($_COOKIE['wcmlim_nearby_location']) ? $_COOKIE['wcmlim_nearby_location'] : "";
 																		$loc_dis_un = get_option('wcmlim_location_distance');
 																		?>
-																		<input type="text" placeholder="<?php _e('Enter Pincode/Zipcode', 'wcmlim'); ?>" required class="class_post_code_global" name="post_code_global" value="<?php if($globpin != 0){esc_html_e($globpin);} ?>" id="elementIdGlobal">
+																		<input type="text" placeholder="<?php _e('Enter Pincode/Zipcode', 'wcmlim'); ?>" required class="class_post_code_global elementIdGlobal" name="post_code_global" value="<?php if($globpin != 0){esc_html_e($globpin);} ?>" id="elementIdGlobal">
 																		<input type="button" class="button" id="submit_postcode_global" value="<?php _e('Apply', 'wcmlim'); ?>">
 																		<input type='hidden' name="global_postal_check" id='global-postal-check' value='true'>
 																		<input type='hidden' name="global_postal_location" id='global-postal-location' value='<?php esc_html_e($globpin); ?>'>
@@ -2269,7 +2350,7 @@ class Wcmlim_Public
 																</div>
 																<?php if ($useLc == "on") { ?>
 																	<div class="wclimlocsearch" style="display:none">
-																		<i id="currentLoc" class="fas fa-crosshairs">
+																		<i id="currentLoc"  class="fas fa-crosshairs currentLoc">
 																			<a>Use Current Location</a> </i>
 																	</div>
 																<?php } ?>
@@ -2291,6 +2372,8 @@ class Wcmlim_Public
 										<?php }										
 									} /** is_preferred */
 								}
+
+								
 								/***
 								 * On load and change region update
 								 */

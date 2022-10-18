@@ -140,6 +140,7 @@ jQuery( document ).ready( ( $ ) =>
           if ( stockupp == 0 )
           {
             if(location_stock_status == 'instock'){
+              
              // $( "<p class='stockupp'>" ).text( "In Stock" ).insertAfter( paddress );
           }else {
             if (backorder_allow == 'yes' || simple_product_backorder == 1){
@@ -164,6 +165,8 @@ jQuery( document ).ready( ( $ ) =>
               $( "<p class='stockupp'>" ).text( "In Stock : " + stockupp ).insertAfter( paddress );
             }
           }
+
+         
         }  
           if ( detailadd == "on" )
           {
@@ -392,19 +395,19 @@ jQuery( document ).ready( ( $ ) =>
       {
         showPosition();
       } );
-      $( "#elementIdGlobal" ).on( "click", function ()
+      $( ".elementIdGlobal" ).on( "click", function ()
       {
         $( ".wclimlocsearch" ).show();
       } );
-      $( "#elementIdGlobal" ).on( "change", function ()
+      $( ".elementIdGlobal" ).on( "change", function ()
       {
         $( ".wclimlocsearch" ).hide();
       } );
-      $( "#elementIdGlobal" ).on( "input", function ()
+      $( ".elementIdGlobal" ).on( "input", function ()
       {
         $( ".wclimlocsearch" ).hide();
       } );
-      $( "#currentLoc" ).click( () =>
+      $( ".currentLoc" ).click( () =>
       {
         showPosition();
       } );
@@ -429,7 +432,6 @@ jQuery( document ).ready( ( $ ) =>
           var comp_xhtml = '';
           for ( i = 0; i < res.length; i++ )
           {
-            // console.log( res[ i ][ "distance" ] );
             if ( maxdistance < res[ i ][ "distance" ] )
             {
               maxdistance = res[ i ][ "distance" ];
@@ -496,7 +498,6 @@ jQuery( document ).ready( ( $ ) =>
         {
           if ( locations[ i ][ 4 ] == "origin" )
           {
-            // console.log( locations );
             map = new google.maps.Map( document.getElementById( "map" ), {
               zoom: parseInt( default_zoom ),
               center: new google.maps.LatLng( locations[ i ][ 1 ], locations[ i ][ 2 ] ),
@@ -1042,19 +1043,19 @@ jQuery( document ).ready( ( $ ) =>
     {
       showPosition();
     } );
-    $( "#elementIdGlobal" ).on( "click", function ()
+    $( ".elementIdGlobal" ).on( "click", function ()
     {
       $( ".wclimlocsearch" ).show();
     } );
-    $( "#elementIdGlobal" ).on( "change", function ()
+    $( ".elementIdGlobal" ).on( "change", function ()
     {
       $( ".wclimlocsearch" ).hide();
     } );
-    $( "#elementIdGlobal" ).on( "input", function ()
+    $( ".elementIdGlobal" ).on( "input", function ()
     {
       $( ".wclimlocsearch" ).hide();
     } );
-    $( "#currentLoc" ).click( () =>
+    $( ".currentLoc" ).click( () =>
     {
       showPosition();
     } );
@@ -1318,10 +1319,10 @@ jQuery( document ).ready( ( $ ) =>
           if ( locatdata )
           {
             $( ".wcmlim-lc-select" ).prepend(
-              `<option value="-1" disabled="disabled" >Please Select</option>`
+              `<option value="-1"  >Please Select</option>`
             );
             $( ".wcmlim_lcselect" ).prepend(
-              `<option value="-1" disabled="disabled" >Please Select</option>`
+              `<option value="-1"  >Please Select</option>`
             );
             $.each( data, function ( i, value )
             {
@@ -1385,7 +1386,7 @@ jQuery( document ).ready( ( $ ) =>
         },
         error ( res )
         {
-          console.log( res );
+         // console.log( res );
         },
       } );
     }
@@ -1471,8 +1472,8 @@ jQuery( document ).ready( ( $ ) =>
               },
               dataType: "json",
               success ( res )
-              {
-              
+              {        
+                
                 if ( $.trim( res.status ) == "true" )
                 {
                   if ( nextloc == "on" )
@@ -1484,8 +1485,13 @@ jQuery( document ).ready( ( $ ) =>
                       `<button id="" class="Wcmlim_accept_btn"><i class="fa fa-check"></i>Accept</button><input type="hidden" class="nextAcceptLoc" value="${ res.secNearLocKey }" />`
                     ).appendTo( ".Wcmlim_nextloc_label" );
                     $(
+                      `<div id="seloc" class="selected_location_name"><i class="fa fa-dot-circle"></i>${ selA[ 0 ].trim() } <br />
+                      <span class="next_km">( ` + res.fetch_origin_distance + `)</span>
+                      </div>`
+                    ).appendTo( ".selected_location_detail" );
+                    $(
                       `<strong>` + NextClosestinStock +
-                      `: <br/> ${ res.secNearLocAddress } <span class="next_km">(${ res.secNearStoreDisUnit })</span></strong>`
+                      `: <br/> ` + res.secNearLocAddress + ` <span class="next_km">( ` + res.secNearStoreDisUnit + `)</span></strong>`
                     ).appendTo( ".next_closest_location_detail" );
 
                     if ( $( ".Wcmlim_accept_btn" ).length )
@@ -1521,9 +1527,7 @@ jQuery( document ).ready( ( $ ) =>
             // $( "<p id='losm'>" + multi_inventory.soldout + "</p>" ).insertAfter(
             //   ".Wcmlim_prefloc_sel"
             // );
-            $(
-              `<div id="seloc" class="selected_location_name"><i class="fa fa-dot-circle"></i>${ selA[ 0 ].trim() }</div>`
-            ).appendTo( ".selected_location_detail" );
+            
             $(
               `<div id="locsoldImg" class="Wcmlim_over_stock"><i class="fa fa-times"></i>${ soldout }</div>`
             ).appendTo( ".Wcmlim_locstock" );
@@ -1589,10 +1593,6 @@ jQuery( document ).ready( ( $ ) =>
                 ).appendTo( ".Wcmlim_locstock" );
               }
             }
-
-            $(
-              ".actions-button, .qty, .quantity, .single_add_to_cart_button, .add_to_cart_button, .stock, .compare"
-            ).show();
           }
         }
         if ( BoS == 0 )
@@ -1790,7 +1790,6 @@ jQuery( document ).ready( ( $ ) =>
                           dataType: "json",
                           success ( r )
                           {
-                            // console.log(res);
                             if ( $.trim( r.status ) == "true" )
                             {
                               if ( nextloc == "on" )
@@ -1804,7 +1803,7 @@ jQuery( document ).ready( ( $ ) =>
                                 ).appendTo( ".Wcmlim_nextloc_label" );
                                 $(
                                   `<strong>` + NextClosestinStock +
-                                  `: <br/> ${ r.secNearLocAddress } <span class="next_km">(${ r.secNearStoreDisUnit })</span></strong>`
+                                  `: <br/> ` + r.secNearLocAddress + ` <span class="next_km">(` + r.secNearStoreDisUnit + `) </span></strong>`
                                 ).appendTo( ".next_closest_location_detail" );
 
                                 if ( $( ".Wcmlim_accept_btn" ).length )
@@ -1852,6 +1851,7 @@ jQuery( document ).ready( ( $ ) =>
                         ).hide();
                       } else
                       {
+                        
                         if ( enable_price == "on" )
                         {
                           const regularPrice = $( "#select_location" )
@@ -1911,6 +1911,7 @@ jQuery( document ).ready( ( $ ) =>
                           }
 
                         }
+                        
                         $(
                           `<div id="seloc" class="selected_location_name"><i class="fa fa-dot-circle"></i>${ selA[ 0 ].trim() }</div>`
                         ).appendTo( ".selected_location_detail" );
@@ -1992,6 +1993,7 @@ jQuery( document ).ready( ( $ ) =>
         "#globMsg, #seloc, #locsoldImg, #locstockImg, .Wcmlim_accept_btn"
       ).remove();
     }
+   
     if ( selectedText )
     {
       const selA = selectedText.split( "-" );
@@ -2026,10 +2028,8 @@ jQuery( document ).ready( ( $ ) =>
                 dataType: "json",
                 success ( res )
                 {
-                  // console.log(res);
                   if ( $.trim( res.status ) == "true" )
                   {
-                    console.table( res );
                     if ( nextloc == "on" )
                     {
                       $( ".next_closest_location_detail" ).html( "" );
@@ -2040,7 +2040,7 @@ jQuery( document ).ready( ( $ ) =>
                       ).appendTo( ".Wcmlim_nextloc_label" );
                       $(
                         `<strong>` + NextClosestinStock +
-                        `: <br/> ${ res.loc_address } <span class="next_km">(${ res.loc_dis_unit })</span></strong>`
+                        `: <br/> ` +res.loc_address + ` <span class="next_km">(` + res.secNearStoreDisUnit + `)</span></strong>`
                       ).appendTo( ".next_closest_location_detail" );
 
                       if ( $( ".Wcmlim_accept_btn" ).length )
@@ -2057,6 +2057,14 @@ jQuery( document ).ready( ( $ ) =>
                       if ( $( ".postcode-location-distance" ).length )
                       {
                         $( ".postcode-location-distance" ).hide();
+                      }
+                      var kmval = res.fetch_origin_distance;
+                      if(kmval || kmval != '')
+                      {
+                        $(
+                          "<div class='postcode-location-distance'> <i class='fa fa-map-marker-alt'></i>" + kmval + " </div>"
+                        ).insertAfter( ".selected_location_detail" );
+                        $( ".postcode-location-distance" ).show();
                       }
                     }
                   }
@@ -2089,65 +2097,51 @@ jQuery( document ).ready( ( $ ) =>
             }
           } else
           {
-            $( ".next_closest_location_detail" ).html( "" );
-            $( ".next_closest_location_detail" ).hide();
-            if (
-              $( "#globMsg, #losm, #seloc, #locsoldImg, #locstockImg" ).length > 0
-            )
-            {
-              $( "#globMsg, #losm, #seloc, #locsoldImg, #locstockImg" ).remove();
-            }
-
-            if ( stockDisplay == "no_amount" )
-            {
-              $(
-                "<p id='globMsg'>" + multi_inventory.instock + "</p>"
-              ).insertAfter( ".Wcmlim_prefloc_sel" );
-              $(
-                `<div id="seloc" class="selected_location_name"><i class="fa fa-dot-circle"></i>${ selA[ 0 ].trim() }</div>`
-              ).appendTo( ".selected_location_detail" );
-              var kmval = $( "#product-location-distance" ).val();
-              $( ".postcode-location-distance" ).html(
-                `<i class="fa fa-map-marker-alt"></i> ${ kmval } ` +
-                multi_inventory.instock
-              );
-            } else
-            {
-              if ( $( "#seloc, #locsoldImg, #locstockImg" ).length > 0 )
-              {
-                $( "#seloc, #locsoldImg, #locstockImg" ).remove();
-              }
-              if ( typeof stockQt == 'undefined' )
-              {
-                $( `<p id='globMsg'>${ multi_inventory.instock }</p>` ).insertAfter( ".Wcmlim_prefloc_sel" );
-              } else
-              {
-                $(
-                  `<p id='globMsg'><b>${ stockQt }</b> ` +
-                  multi_inventory.instock +
-                  ` </p>`
-                ).insertAfter( ".Wcmlim_prefloc_sel" );
-              }
-              if ( stockQt == "" )
-              {
-                $( "#globMsg, #seloc, #losm" ).remove();
-                $( ".Wcmlim_loc_label" ).hide();
-              } else
-              {
-                $(
-                  `<div id="seloc" class="selected_location_name"><i class="fa fa-dot-circle"></i>${ selA[ 0 ].trim() }</div>`
-                ).appendTo( ".selected_location_detail" );
-                var kmval = $( "#product-location-distance" ).val();
-                if ( kmval || kmval != '' )
+            const svalue = $( "#select_location" ).find( "option:selected" ).text();
+            const sLValue = $( "#select_location" ).find( "option:selected" ).val();
+            $(
+              '<div id="load" style="display:none"><img src="//s.svgbox.net/loaders.svg?fill=maroon&ic=tail-spin" style="width:33px"></div>'
+            ).appendTo( ".Wcmlim_nextloc_label" );
+            $( "#load" ).show();
+            $.ajax( {
+              type: "POST",
+              url: ajaxurl,
+              data: {
+                action: "wcmlim_closest_location",
+                selectedLocationId: sLValue,
+              },
+              dataType: "json",
+              success ( res )
+              {        
+                
+                if ( $.trim( res.status ) == "true" )
                 {
-                  $( ".postcode-location-distance" ).html(
-                    `<i class="fa fa-map-marker-alt"></i> ${ kmval } ` +
-                    multi_inventory.away
-                  );
-                }
-              }
+                  if ( nextloc == "on" )
+                  {
+                    $( ".next_closest_location_detail" ).html( "" );
+                    $( ".next_closest_location_detail" ).show();
+                    $( "#load" ).hide();
+                    $(
+                      `<button id="" class="Wcmlim_accept_btn"><i class="fa fa-check"></i>Accept</button><input type="hidden" class="nextAcceptLoc" value="${ res.secNearLocKey }" />`
+                    ).appendTo( ".Wcmlim_nextloc_label" );
+                    $(
+                      `<div id="seloc" class="selected_location_name"><i class="fa fa-dot-circle"></i>${ selA[ 0 ].trim() } <br />
+                      <span class="next_km">( ` + res.fetch_origin_distance + `)</span>
+                      </div>`
+                    ).appendTo( ".selected_location_detail" );
+                    if ( $( ".Wcmlim_accept_btn" ).length > 0 )
+            {
+              $( ".Wcmlim_accept_btn" ).remove();
             }
 
+                    if ( $( ".postcode-location-distance" ).length )
+                    {
+                      $( ".postcode-location-distance" ).hide();
+                    }
+                  }
+                }
+              },
+            } );
             $(
               `<div id="locstockImg" class="Wcmlim_have_stock"><i class="fa fa-check"></i>${ instock }</div>`
             ).appendTo( ".Wcmlim_locstock" );
@@ -2316,10 +2310,10 @@ jQuery( document ).ready( ( $ ) =>
           );
           const glocunit = response.loc_dis_unit;
           const locationCookie = getCookie( "wcmlim_selected_location" );
-
+          // console.log(locationCookie);
           if ( locationCookie == null || locationCookie == "undefined" )
           {
-
+          
             // do cookie doesn't exist stuff;
             var gLocation = response.loc_key;
             $( "#wcmlim-change-lc-select" )
@@ -2360,6 +2354,7 @@ jQuery( document ).ready( ( $ ) =>
               var selA = optText.split( "-" );
               if ( 1 in selA )
               {
+               
 
                 if (
                   !stockDisplay ||
@@ -2378,7 +2373,6 @@ jQuery( document ).ready( ( $ ) =>
                         "#locsoldImg, #locstockImg, #losm, #seloc, #globMsg"
                       ).remove();
                     }
-                    // $( ".Wcmlim_loc_label" ).show();
                     $(
                       "<p id='losm'>" + multi_inventory.soldout + " </p>"
                     ).insertAfter( ".Wcmlim_prefloc_sel" );
@@ -2399,7 +2393,6 @@ jQuery( document ).ready( ( $ ) =>
                         "#locsoldImg, #locstockImg, #losm, #seloc, #globMsg"
                       ).remove();
                     }
-                    //$( ".Wcmlim_loc_label" ).show();
 
                     if ( stockDisplay == "no_amount" )
                     {
@@ -2455,7 +2448,7 @@ jQuery( document ).ready( ( $ ) =>
                 ).appendTo( ".Wcmlim_nextloc_label" );
                 $(
                   `<strong>` + NextClosestinStock +
-                  `: <br/> ${ response.secNearLocAddress } <span class="next_km">(${ response.secNearStoreDisUnit })</span></strong>`
+                  `: <br/> ` + response.secNearLocAddress + ` <span class="next_km">(`+ response.secNearStoreDisUnit + `)</span></strong>`
                 ).appendTo( ".next_closest_location_detail" );
                 if ( $( ".Wcmlim_accept_btn" ).length )
                 {
@@ -2511,7 +2504,7 @@ jQuery( document ).ready( ( $ ) =>
           } else
           {
             var gLocation = response.loc_key;
-
+//  alert(gLocation);
             // if(locationCookie != $.trim(response.location)){
             $( "#wcmlim-change-lc-select" )
               .find( ":selected" )
@@ -2613,6 +2606,7 @@ jQuery( document ).ready( ( $ ) =>
                       $(
                         `<div id="seloc" class="selected_location_name"><i class="fa fa-dot-circle"></i>${ selA[ 0 ].trim() }</div>`
                       ).appendTo( ".selected_location_detail" );
+                      
                     }
                     $(
                       ".actions-button, .qty, .quantity, .single_add_to_cart_button, .add_to_cart_button, .stock, .compares"
@@ -2632,6 +2626,7 @@ jQuery( document ).ready( ( $ ) =>
 
             if ( stockQt <= 0 && glocunit != null && BoStatus == 0 )
             {
+              
               $(
                 `<div id="locsoldImg" class="Wcmlim_over_stock"><i class="fa fa-times"></i>${ soldout }</div>`
               ).appendTo( ".Wcmlim_locstock" );
@@ -2649,7 +2644,7 @@ jQuery( document ).ready( ( $ ) =>
                 ).appendTo( ".Wcmlim_nextloc_label" );
                 $(
                   `<strong>` + NextClosestinStock +
-                  `: <br/> ${ response.secNearLocAddress } <span class="next_km">(${ response.secNearStoreDisUnit })</span></strong>`
+                  `: <br/> ` + response.secNearLocAddress + `<span class="next_km">(` + response.secNearStoreDisUnit + `)</span></strong>`
                 ).appendTo( ".next_closest_location_detail" );
                 if ( $( ".Wcmlim_accept_btn" ).length )
                 {
@@ -2672,6 +2667,7 @@ jQuery( document ).ready( ( $ ) =>
                 `<div id="locstockImg" class="Wcmlim_have_stock"><i class="fa fa-check"></i>${ instock }</div>`
               ).appendTo( ".Wcmlim_locstock" );
               $( ".postcode-location-distance" ).show();
+
               $( ".postcode-location-distance" ).html( `<i class="fa fa-map-marker-alt"></i> ${ glocunit } ` + multi_inventory.away );
               if ( $( ".next_closest_location_detail" ).length )
               {
@@ -2685,26 +2681,17 @@ jQuery( document ).ready( ( $ ) =>
 
               $( "#locsoldImg, #locstockImg" ).remove();
               $( ".Wcmlim_accept_btn" ).remove();
-              $( ".next_closest_location_detail" ).html( "" );
               $(
                 `<div id="locstockImg" class="Wcmlim_have_stock"><i class="fa fa-check"></i>${ instock }</div>`
               ).appendTo( ".Wcmlim_locstock" );
-              // $(
-              //   '<div id="locstockImg" class="Wcmlim_noStore">No Store Found</div>'
-              // ).appendTo( ".Wcmlim_messageerror" );
             } else
             {
               $( "#locsoldImg, #locstockImg" ).remove();
-              // $(
-              //   '<div id="locstockImg" class="Wcmlim_noStore">Please check the location</div>'
-              // ).appendTo( ".Wcmlim_messageerror" );
               if ( $( ".next_closest_location_detail" ).length )
               {
                 $( ".next_closest_location_detail" ).hide();
               }
             }
-            // }
-            // $("#lc-switch-form").submit();
           }
         }
 
@@ -3145,6 +3132,8 @@ jQuery( document ).ready( ( $ ) =>
       .attr( "data-lc-qty" );
     var text_qty = document.getElementsByClassName( "qty" )[ 0 ].value;
 
+    const boStatus = $( "#backorderAllowed" ).val();
+    if (boStatus != 1){
     if ( stockQt < text_qty )
     {
       $( ".qty" ).attr( { max: stockQt } );
@@ -3156,7 +3145,6 @@ jQuery( document ).ready( ( $ ) =>
       $( ".qty" ).attr( { max: stockQt } );
       document.getElementById( "lc_qty" ).value = stockQt;
     }
+  }
   } );
 } );
-
-

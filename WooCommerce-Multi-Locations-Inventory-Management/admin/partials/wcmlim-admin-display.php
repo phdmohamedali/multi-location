@@ -215,7 +215,7 @@
             <form action="options.php" method="post" id="shortcodes_setting_form">
               <div class="shortcode-instruction-block" style="width: 98%;">
                 <h3>Location Popup </h3>
-                To display Location Popup <br /> - use<code>[wcmlim_locations_popup]</code> or insert as PHP code into your theme files: <code> &lt;?php echo do_shortcode('[wcmlim_locations_popup]'); ?&gt;</code>
+                To display Location Popup <br /> - use<code>[wcmlim_locations_popup] </code> or insert as PHP code into your theme files: <code> &lt;?php echo do_shortcode('[wcmlim_locations_popup]'); ?&gt;</code>
                 <hr><h3>Location Switch</h3>
                 To display Locations Dropdown on your website <br /> - use<code>[wcmlim_locations_switch]</code> shortcode.<br>You can put it anywhere into page content using editor just by copy-paste, <br> or insert as PHP code into your theme files: <code>&lt;?php echo do_shortcode('[wcmlim_locations_switch]'); ?&gt;</code>.   
               </div> 

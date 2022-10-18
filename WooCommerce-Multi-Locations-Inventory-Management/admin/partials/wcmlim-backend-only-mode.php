@@ -436,7 +436,7 @@ class Wcmlim_Backend_Only_Mode
                 $lk = $getKey; 
                 $lk2 = $maxKey;
                 ?>
-                <option class="maxinvloc" data-lc-key="<?php echo $getKey; ?>" value="<?php esc_html_e($maxKey); ?>" <?php echo ($location_term_id ==  $maxKey) ? ' selected="selected"' : '';?>><?php echo $termname ;?></option>
+                <option class="maxinvloc" data-lc-key="<?php echo $getKey; ?>" value="<?php esc_html_e($maxKey); ?>" <?php echo ($location_term_id ==  $maxKey) ? ' selected="selected"' : '';?>><?php echo $termname .' - '.$maxStockAtLoc ;?></option>
                 <?php  
               }
               else if ($routeRules == "locappriority") {

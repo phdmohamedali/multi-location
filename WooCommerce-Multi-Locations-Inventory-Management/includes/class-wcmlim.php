@@ -316,7 +316,6 @@ class Wcmlim
     $this->loader->add_action("wp_ajax_populate_shipping_methods", $plugin_admin, "wcmlim_dynamic_shipping_methods");
     $this->loader->add_action("wp_ajax_wcmlim_deactivate_plugin", $plugin_admin, "wcmlim_deactivate_plugin");
     $this->loader->add_action("wp_ajax_wcmlim_submit_feedback", $plugin_admin, "wcmlim_submit_feedback");
-    $this->loader->add_action('admin_notices', $plugin_admin,'support_validator_admin_notice');
     $this->loader->add_action('admin_footer', $plugin_admin,'feedback_form_module');
     $this->loader->add_action( 'manage_posts_extra_tablenav', $plugin_admin, 'admin_order_list_top_bar_button');
     $this->loader->add_action( 'added_post_meta',$plugin_admin, 'wcmlim_sync_on_product_save', 10, 4 );
@@ -327,6 +326,8 @@ class Wcmlim
     $this->loader->add_action("wp_ajax_wcmlim_get_lcpriority", $plugin_admin, "wcmlim_get_lcpriority");
     $this->loader->add_action("wp_ajax_priv_wcmlim_get_lcpriority", $plugin_admin, "wcmlim_get_lcpriority");
 
+       /** New changes */
+    $this->loader->add_action('woocommerce_restock_refunded_item',  $plugin_admin,'wcmlim_restore_stock_after_order_refund', 10, 5);
   }
   /**
    * Register all of the hooks related to the public-facing functionality

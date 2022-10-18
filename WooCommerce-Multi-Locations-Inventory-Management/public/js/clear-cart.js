@@ -113,7 +113,7 @@
   }
   $( document ).on( "click", ".wcmlim_validation_clear_cart", ( e ) =>
   {
-    var dropDownId = $( '#wcmlim-change-lc-select :selected' ).attr( 'data-lc-term' );
+    var dropDownId = $( '.wcmlim-change-lc-select :selected' ).attr( 'data-lc-term' );
 
     //document.querySelector('.wcmlim_validation_clear_cart').on('click', function() {
     jQuery.ajax( {

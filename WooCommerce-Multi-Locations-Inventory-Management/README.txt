@@ -53,7 +53,7 @@ For documentation visit our [Website](https://techspawn.com/docs/woocommerce-mul
 == Screenshots ==
 
 == Changelog ==
-= Version 3.2.3 =
+= Version 3.2.4 =
 Fix:Total stock is not reducing after deleting the location.
 
 == Changelog ==

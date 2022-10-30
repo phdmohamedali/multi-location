@@ -9,7 +9,7 @@ jQuery( document ).ready( ( $ ) =>
       $( '#wcmlim_get_direction_for_location' ).hide();
     }
   } );
-  $( "#wcmlim-change-lcselect" ).on( "change", function ( e )
+  $( "#wcmlim-change-lcselect" ).on( "click", function ( e )
   {
     if ( $( '#wcmlim_get_direction_for_location' ).length > 0 )
     {

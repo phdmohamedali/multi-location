@@ -53,6 +53,10 @@ For documentation visit our [Website](https://techspawn.com/docs/woocommerce-mul
 == Screenshots ==
 
 == Changelog ==
+= Version 3.2.5 = 
+Fix: Total stock is not updated on product central when order is placed from WCPOS frontend.[Git Issue]
+
+== Changelog ==
 = Version 3.2.4 =
 Fix:Total stock is not reducing after deleting the location.
 

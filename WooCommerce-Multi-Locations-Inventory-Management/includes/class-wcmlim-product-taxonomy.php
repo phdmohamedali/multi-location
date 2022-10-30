@@ -217,11 +217,23 @@ class Wcmlim_Product_Taxonomy
       $total = 0;
           $product_id = $value->ID;
           $product = wc_get_product($product_id);
-      $locations = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false));
-          foreach ($locations as $location) {
-            $total +=  intval(get_post_meta($product_id, "wcmlim_stock_at_{$location->term_id}", true));
-          }        
-          update_post_meta($product_id, '_stock', $total);
+          $locations = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false));
+          if ($product->is_type('simple')) {
+            foreach ($locations as $location) {
+              $total +=  intval(get_post_meta($product_id, "wcmlim_stock_at_{$location->term_id}", true));
+            }
+            update_post_meta($product_id, '_stock', $total);
+          } elseif ($product->is_type('variable')) {
+            $variations = $product->get_available_variations();
+            foreach ($variations as $key => $value) {
+              $total = 0;
+              foreach ($locations as $location) {
+              $total +=  intval(get_post_meta($value['variation_id'], "wcmlim_stock_at_{$location->term_id}", true));
+              update_post_meta($value['variation_id'], "_stock",$total);
+            }
+          }
+       }
+      
 
       } 
  }

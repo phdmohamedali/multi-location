@@ -1668,12 +1668,12 @@ jQuery( document ).ready( ( $ ) =>
             var sel_stock_status = String(select.stock_status);
             if( sel_stock_status == "outofstock")
             {
-              $(".Wcmlim_container.wcmlim_product").hide();
+             $(".woocommerce-variation-add-to-cart.variations_button.woocommerce-variation-add-to-cart-disabled ").hide();
             }
             else
             {
-              $(".Wcmlim_container.wcmlim_product").show();
-            }
+              $(".woocommerce-variation-add-to-cart-enabled").show();
+          }
             var size = Object.keys( select ).length;
             const pop = $( "#productOrgPrice" ).val();
             $( ".select_location" ).empty();
@@ -2142,6 +2142,11 @@ jQuery( document ).ready( ( $ ) =>
                 }
               },
             } );
+            if ( $( '#losm' ).length > 0 )
+            {
+              $( '#losm' ).hide();
+            }
+            $( `<p id='globMsg'><b> ${ stockQt } </b>${ multi_inventory.instock }</p>` ).insertAfter( ".Wcmlim_prefloc_sel" );
             $(
               `<div id="locstockImg" class="Wcmlim_have_stock"><i class="fa fa-check"></i>${ instock }</div>`
             ).appendTo( ".Wcmlim_locstock" );
@@ -2799,9 +2804,11 @@ jQuery( document ).ready( ( $ ) =>
                 }
               } else
               {
+                setcookie( "wcmlim_selected_location", value );
                 $( ".wcmlim_cart_valid_err" ).remove();
                 $( '.single_add_to_cart_button' ).prop( "disabled", false );
                 $( "#wcmlim-change-lc-select" ).closest( "form" ).submit();
+                window.location.href = window.location.href;
               }
             },
           } );

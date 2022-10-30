@@ -195,6 +195,8 @@ class Wcmlim
     // hooks and filters for display location on product list admin page
     $this->loader->add_filter('manage_edit-product_columns', $plugin_admin, 'wcmlim_remove_default_tcoloumn', 10, 1);
     $this->loader->add_action('manage_posts_custom_column', $plugin_admin, 'wcmlim_populate_locations_column');
+    $this->loader->add_action('manage_posts_custom_column', $plugin_admin, 'wcmlim_populate_stock_column');
+
     $this->loader->add_action('restrict_manage_posts', $plugin_admin, 'wcmlim_filter_by_taxonomy_locations', 10, 2);
 
   // hooks and filters for display location Price on product list admin page

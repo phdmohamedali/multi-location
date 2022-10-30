@@ -110,6 +110,7 @@ function wcmlim_show_address_on_checkout()
             true
           );
           $city = get_term_meta($term_id, 'wcmlim_route', true);
+          $locality = get_term_meta($term_id, 'wcmlim_locality', true);
           $postcode = get_term_meta($term_id, 'wcmlim_postal_code', true);
           $state = get_term_meta(
             $term_id,
@@ -127,6 +128,7 @@ function wcmlim_show_address_on_checkout()
           $term_meta = array(
             'street_address' => $street_address,
             'wcmlim_city' => $city,
+            'wcmlim_locality'=>$locality,
             'wcmlim_postcode' => $postcode,
             'wcmlim_state_code' => $wcmlim_state_code,
             'wcmlim_state' => $state,
@@ -478,7 +480,8 @@ function wcmlim_location_row_layout()
          $new_address = '';
          if(!empty($streetNumber)){
           $new_address .=  $streetNumber.',';
-         }if(!empty($route)){
+         }
+         if(!empty($route)){
           $new_address .=  $route.',';
          }
          if(!empty($locality)){

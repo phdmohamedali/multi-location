@@ -60,8 +60,10 @@ class Wcmlim_Backend_Only_Mode
     add_action("woocommerce_payment_complete", [$plugin_public, "wcmlim_maybe_reduce_stock_levels"]);
     add_action('woocommerce_order_status_completed', [$plugin_public, "wcmlim_maybe_reduce_stock_levels"]);
     add_action('woocommerce_order_status_processing', [$plugin_public, "wcmlim_maybe_reduce_stock_levels"]);
-    add_action('woocommerce_order_status_cancelled', [$plugin_public, 'wcmlim_maybe_increase_stock_levels']);
     add_action('woocommerce_order_status_on-hold', [$plugin_public, "wcmlim_maybe_reduce_stock_levels"]);
+    add_action('woocommerce_order_status_cancelled', [$plugin_public, 'wcmlim_maybe_increase_stock_levels']);
+    add_action('woocommerce_order_status_pending', [$plugin_public, 'wcmlim_maybe_increase_stock_levels']);
+
     add_action( 'wp_enqueue_scripts', 'pr_cycle_scripts' );
     function pr_cycle_scripts (){
       wp_register_script('pr_cycle_all',get_stylesheet_directory_uri().'/js/pr-slider.js');
@@ -743,14 +745,15 @@ class Wcmlim_Backend_Only_Mode
               usort($distance, function (array $a, array $b) {
                 $adistance = floatval($a['distance']);
                 $bdistance = floatval($b['distance']); 
-                return floatval($adistance) > floatval($bdistance);
-            });
+                if(floatval($adistance) == floatval($bdistance)){
+                  return 0;
+                }
+                return floatval($adistance) > floatval($bdistance) ? 1 : -1;
+              });
            
               $this->wcmlim_nearby_stock_adjustment($product_id,$match_dest,$distance,$item_id);
             }
-
-           
-          }
+      }
           
     }
     else

@@ -46,11 +46,12 @@
 
 /* Spinners and Animations */
 .wcmlim-chase-wrapper {
-  padding: 5px 0;
   display: flex;
+  padding-top: 0px;
   justify-content: center;
   align-items: center;
-  margin-top: 20px;
+  position: relative;
+  top: -5px;
 }
 
 .wcmlim-chase {

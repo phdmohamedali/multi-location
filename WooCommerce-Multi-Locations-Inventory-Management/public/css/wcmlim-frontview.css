@@ -262,7 +262,10 @@ h3.Wcmlim_box_title {
 .wcmlim_change_lc_to p{
     padding-top:7px ;
 }
-.inline_wcmlim_lc .wcmlim_form_box .search_rep {
+.search_rep{
+    padding: 10px 0;
+}
+.inline_wcmlim_lc .wcmlim_form_box {
     line-height: 1;
     background: #fff;
     padding: 20px 0;

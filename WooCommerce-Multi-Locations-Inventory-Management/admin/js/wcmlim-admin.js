@@ -810,3 +810,21 @@ document.addEventListener( "wheel", function ( event )
     document.activeElement.blur();
   }
 } );
+
+
+jQuery( document ).ready( function ( $ )
+{
+$('#postal_code, #wcmlim_country, #wcmlim_autocomplete_address, #tag-name').on("keypress", function() {
+ 
+var postal_code = $('#postal_code').val();
+var country = $('#country').val();
+        var postal_code = jQuery('#postal_code').val();
+        var country = jQuery('#wcmlim_country').val();
+        if(postal_code != '' && country != '')
+        {
+          $('#submit').attr('disabled', false);
+        }
+});
+
+   
+    })

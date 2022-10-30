@@ -116,7 +116,10 @@
   border: 2px solid #cacaca;
   width: 198px;
 }
-
+#currentLoc{
+  -webkit-appearance: button;
+  cursor: pointer;
+}
 .mfp-content .wclimlocsearch a {
   font-family: "Jost-Regular";
   font-size: 16px;

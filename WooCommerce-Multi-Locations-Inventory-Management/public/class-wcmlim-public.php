@@ -46,7 +46,7 @@ class Wcmlim_Public
 	public function __construct($plugin_name, $version)
 	{
 		$this->plugin_name = $plugin_name;
-		$this->version = $version;
+		$this->version = $version;		
 	}
 
 
@@ -85,7 +85,6 @@ class Wcmlim_Public
 	 */
 	public function enqueue_scripts()
 	{
-
 		/**
 		 * This function is provided for demonstration purposes only.
 		 *
@@ -140,7 +139,7 @@ class Wcmlim_Public
 		if ( $isLocationsGroup == "on" ) {
 			wp_enqueue_script($this->plugin_name . '_locator', plugin_dir_url(__FILE__) . 'js/wcmlim-locator.js', array('jquery'), $this->version . rand(), true);	
 			if ($getdirection == 'on') {
-				wp_enqueue_script($this->plugin_name.'_getdirlocationgroup', plugin_dir_url(__FILE__) . 'js/wcmlim-getdirlocationgroup.js', array('jquery'), $this->version . rand(), true);	
+				wp_enqueue_script($this->plugin_name.'_getdirlocationgroup', plugin_dir_url(__FILE__) . 'js/getdirlocationgroup.js', array('jquery'), $this->version . rand(), true);	
 			}
 	}
 		if ($getdirection == 'on') {
@@ -1041,6 +1040,11 @@ if ($dis_unit == "kms") {
 	 */
 	public function wcmlim_display_location()
 	{
+		$locations = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
+		if(count($locations) == '0'){
+			return 0;
+			wp_die();
+		}
 		global $post;
 
 			//for out of stock button text
@@ -1148,6 +1152,19 @@ if ($dis_unit == "kms") {
 						}
 					</style>
 					<?php
+					}
+					$terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
+			
+					if (empty($terms)) {
+						?>
+							<style>
+								.wcmlim_product
+								{
+									display:none !important;
+								}
+							</style>
+							<?php
+						
 					}
 					?>
 				<div class="Wcmlim_container wcmlim_product">
@@ -1288,6 +1305,17 @@ if ($dis_unit == "kms") {
 									}
 								</style>
 								<?php
+								}
+								$terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
+								if (empty($terms)) {
+									?>
+										<style>
+											.wcmlim_product
+											{
+												display:none !important;
+											}
+										</style>
+										<?php
 								}
 								?>
 								<div class="Wcmlim_container wcmlim_product">
@@ -1450,7 +1478,7 @@ if ($dis_unit == "kms") {
 															}														
 															?>
 														</select>
-														<?php if ($isLocationsGroup == null || $isLocationsGroup == false ) { ?>
+														<?php if ($isLocationsGroup == null || $isLocationsGrouremove_actionp == false ) { ?>
 															<!-- Radio Listing Mode -->
 															<div class="wcmlradio_box rselect_location"></div>
 															<div class="wc_scrolldown">
@@ -1815,7 +1843,7 @@ if ($dis_unit == "kms") {
 																	<?php } ?>
 																	<div class="wcmlim_sel_location wcmlim_storeloc">
 																		
-																		<select name="wcmlim_change_sl_to" class="wcmlim_changesl" id="wcmlim-change-sl-select">	
+																		<select name="wcmlim_change_sl_to" class="wcmlim_changesl wcmlim-change-sl-select" id="wcmlim-change-sl-select">	
 																			<option value="-1"><?php _e('Select City or Area', 'wcmlim') ?></option>
 																		<?php
 																			foreach ($storelocator_list as $key => $loc) {
@@ -1826,7 +1854,7 @@ if ($dis_unit == "kms") {
 																			?>
 																		</select>		
 																							
-																		<select class="wcmlim_lcselect" name="wcmlim_change_lc_to" id="wcmlim-change-lcselect">
+																		<select class="wcmlim_lcselect" name="wcmlim_change_lc_to " id="wcmlim-change-lcselect">
 																			<option value="-1" <?php if (!$selected_location) echo "selected='selected'"; ?>><?php _e('Please Select', 'wcmlim') ?></option>
 																
 																		</select>
@@ -1858,15 +1886,7 @@ if ($dis_unit == "kms") {
 											$values[$key] = $value;
 										}
 
-										if(get_option('wcmlim_allow_local_pickup') == 'on' && $chosen_shipping[0] == "wcmlim_pickup_location"){
-											wc_add_order_item_meta($item_id, "Pickup Location", $values["location_name"]);
-
-										}
-										else
-										{
-											wc_add_order_item_meta($item_id, "Location", $values["location_name"]);
-
-										}
+										wc_add_order_item_meta($item_id, "Location", $values["location_name"]);									
 										wc_add_order_item_meta($item_id, "_selectedLocationKey", $values["location_key"]);
 										wc_add_order_item_meta($item_id, "_selectedLocTermId", $values["location_termId"]);
 										setcookie("wcmlim_selected_location", $values["location_key"], time() + 36000, '/');
@@ -1875,6 +1895,11 @@ if ($dis_unit == "kms") {
 
 								public function hidden_order_itemmeta($args)
 								{
+									$locations = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
+										if(count($locations) == '0'){
+											return 0;
+											wp_die();
+										}
 									$args[] = '_selectedLocationKey';
 									$args[] = '_selectedLocTermId';
 									return $args;
@@ -2054,6 +2079,9 @@ if ($dis_unit == "kms") {
 									$stock_display_format = get_option('woocommerce_stock_format');
 									$instock_btntxt = get_option("wcmlim_instock_button_text");									
 							
+									$stock_status = get_post_meta($product_id, '_stock_status', true);
+									$response['stock_status'] = $stock_status;
+
 									if ($product instanceof WC_Product && $product->is_type('variable') && !$product->is_downloadable() && !$product->is_virtual()) {
 										$variations = $product->get_available_variations();
 										if (!empty($variations)) {
@@ -2151,6 +2179,11 @@ if ($dis_unit == "kms") {
 
 								public function wcmlim_add_custom_price($cart_object)
 								{
+									$locations = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
+										if(count($locations) == '0'){
+											return 0;
+											wp_die();
+										}
 									// Avoiding hook repetition (when using price calculations for example)
 									if (did_action('woocommerce_before_calculate_totals') >= 2)
 										return;
@@ -2218,7 +2251,7 @@ if ($dis_unit == "kms") {
 
 									if ($is_preferred == 'on' || !empty($show_in_popup) && empty($uspecLoc)) {
 										$locations_list = $this->wcmlim_get_all_locations();
-										$selected_location = $this->get_selected_location();
+										 $selected_location = $this->get_selected_location();
 										if ($isLocationsGroup == 'on') {
 											$storelocator_list = $this->wcmlim_get_all_store();										}
 										if (sizeof($locations_list) >= 0) { ?>											
@@ -2241,7 +2274,7 @@ if ($dis_unit == "kms") {
 																							} else {
 																								_e('Region: ', 'wcmlim');
 																							} ?></p>
-															<select name="wcmlim_change_sl_to" id="wcmlim-change-sl-select">
+															<select name="wcmlim_change_sl_to " id="wcmlim-change-sl-select">
 															    <option value="-1"><?php _e('Please Select', 'wcmlim') ?></option>	
 															<?php
 																foreach ($storelocator_list as $key => $loc) {
@@ -2257,7 +2290,7 @@ if ($dis_unit == "kms") {
 															if($lcselect == 'on'){
 															echo "wcmlim-lc-select-2";
 															}
-															?>" id="wcmlim-change-lc-select "class="wcmlim-change-lc-select">
+															?>" id="wcmlim-change-lc-select "class="wcmlim-change-lc-select ">
 																<option value="-1" <?php if (!$selected_location) echo "selected='selected'"; ?>><?php _e('Please Select', 'wcmlim') ?></option>
 															
 															</select>
@@ -2529,6 +2562,7 @@ if ($dis_unit == "kms") {
 
 								public function wcmlim_select_location_validation($passed)
 								{
+									
 									$pass_location = isset($_REQUEST['select_location']) ? $_REQUEST['select_location'] : "";
 									$select_loc_va = get_option('wcmlim_select_loc_val');
 									if ($pass_location == -1) {
@@ -3110,13 +3144,21 @@ if ($dis_unit == "kms") {
 									$order->add_order_note(implode(', ', $loc_order_notes));
 
 									update_post_meta($product_id, "wcmlim_stock_at_{$location_id}", $product_updated_qty);
+									$arr_stock = array();
+									$terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
 
+									foreach ($terms as $key => $value) {
+									$loc_stock_val = intval(get_post_meta( $product_id, "wcmlim_stock_at_{$value->term_id}" , true ));
+									array_push($arr_stock, $loc_stock_val);
+									$total_stock_qty = array_sum($arr_stock);
+									}
+									update_post_meta($product_id, "_stock", $total_stock_qty);
+									wp_update_post($product_id);
 									return 1;	
 									}
 									else{
 										if($qty > $product_current_qty_at){
 									$product_updated_qty = 0;
-
 										}
 										else
 										{
@@ -3130,7 +3172,16 @@ if ($dis_unit == "kms") {
 									$order->add_order_note(implode(', ', $loc_order_notes));
 
 									update_post_meta($product_id, "wcmlim_stock_at_{$location_id}", $product_updated_qty);
+									$arr_stock = array();
+									$terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
 
+									foreach ($terms as $key => $value) {
+									$loc_stock_val = intval(get_post_meta( $product_id, "wcmlim_stock_at_{$value->term_id}" , true ));
+									array_push($arr_stock, $loc_stock_val);
+									$total_stock_qty = array_sum($arr_stock);
+									}
+									update_post_meta($product_id, "_stock", $total_stock_qty);
+									wp_update_post($product_id);
 									return 1;	
 									}
 								}

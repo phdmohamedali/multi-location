@@ -16,6 +16,7 @@ jQuery( document ).ready( function ( $ )
                 var response = JSON.parse( result );
                 var street_address = response.street_address;
                 var wcmlim_route = response.wcmlim_city;
+                var wcmlim_locality =response.wcmlim_locality;
                 var wcmlim_postcode = response.wcmlim_postcode;
                 var wcmlim_state = response.wcmlim_state;
                 var wcmlim_state_code = response.wcmlim_state_code;
@@ -28,14 +29,21 @@ jQuery( document ).ready( function ( $ )
                     var address = '';
                     if(street_address!= ''){
                      address +=  street_address+',';
-                    }if(wcmlim_postcode!= ''){
-                     address +=  wcmlim_postcode+',';
+                    }
+                    if(wcmlim_route!= ''){
+                        address +=  wcmlim_route+',';
+                    }
+                    if(wcmlim_locality!= ''){
+                        address +=  wcmlim_locality+',';
                     }
                     if(wcmlim_state != ''){
                      address +=  wcmlim_state+',';
                     }
+                    if(wcmlim_postcode!= ''){
+                        address +=  wcmlim_postcode+',';
+                       }
                     if(wcmlim_country_state!= ''){
-                     address +=  wcmlim_country_state+',';
+                     address +=  wcmlim_country_state+'';
                     }
                 }
                 else
@@ -46,15 +54,19 @@ jQuery( document ).ready( function ( $ )
                     }if(wcmlim_route!= ''){
                         address +=  wcmlim_route+',';
                        }
+                       if(wcmlim_locality!= ''){
+                        address +=  wcmlim_locality+',';
+                    }
+                       if(wcmlim_state != ''){
+                        address +=  wcmlim_state+',';
+                       }
                     if(wcmlim_postcode!= ''){
                      address +=  wcmlim_postcode+',';
                     }
-                    if(wcmlim_state != ''){
-                     address +=  wcmlim_state+',';
-                    }
                     if(wcmlim_country_state!= ''){
-                     address +=  wcmlim_country_state+',';
-                    }
+                        address +=  wcmlim_country_state+'';
+                       }
+                   
                 }
                 if ( wcmlim_email != '' )
                 {

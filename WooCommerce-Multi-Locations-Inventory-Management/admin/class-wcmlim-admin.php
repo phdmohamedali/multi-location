@@ -2865,11 +2865,17 @@ class Wcmlim_Admin
             $product_variations_ids = $product->get_children();
             $product_variations = array();
             foreach ($product_variations_ids as $variation_id) {
+              if(!empty($variation_id)){
               $product_variations[] = $product->get_available_variation($variation_id);
+              }
             }
-            foreach ($product_variations as $variation) {
-              $variations_products[] = wc_get_product($variation['variation_id']);
+            if(!empty($product_variations))
+            {
+              foreach ($product_variations as $variation) {
+                $variations_products[] = wc_get_product($variation['variation_id']);
+              }
             }
+          
           }
           // Get locations from parent product
           $locations = wp_get_post_terms($product->get_id(), 'locations', array('parent' => 0));
@@ -2906,8 +2912,42 @@ class Wcmlim_Admin
           }
         }
       }
-    }
 
+    }
+    public function wcmlim_populate_stock_column($column_name)
+    {
+      if ($column_name == 'is_in_stock') {
+        $isExcludeLocation = get_option("wcmlim_exclude_locations_from_frontend");
+									if (!empty($isExcludeLocation)) {
+										$terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0, 'exclude' => $isExcludeLocation));
+									} else {
+										$terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
+									}
+        $p_id = get_the_ID();
+        $product = wc_get_product($p_id);        
+        $text = get_post_meta($p_id, '_stock_status', true);
+        $count=0;
+        if ($product->is_type("variable")) {
+          $variations = $product->get_available_variations();
+
+            foreach ($terms as $k => $term) {
+              foreach ($variations as $key => $value) {
+                $check_taxanomy_variable = '';
+                $check_taxanomy_variable =  get_post_meta($value['variation_id'], "wcmlim_stock_at_{$term->term_id}", true);
+                if($check_taxanomy_variable!=''){
+                  $count = $count + 1;
+                }
+              }
+            }
+            if ($count > 0) {
+              update_post_meta($p_id, '_stock_status', 'instock');
+            } else {
+              update_post_meta($p_id, '_stock_status', 'outofstock');
+            } 
+          }
+      }
+    }
+  
     /**
      * Returns new Location Price coloumn.
      *
@@ -3654,12 +3694,15 @@ public function wcmlim_sync_on_product_save( $meta_id, $post_id, $meta_key, $met
         $total +=  intval(get_post_meta($product_id, "wcmlim_stock_at_{$location->term_id}", true));
       }        
       update_post_meta($product_id, '_stock', $total);
-      if ($total > 0) {
+      if ($product->backorders_allowed()) {
+        update_post_meta($product_id, '_stock_status', 'onbackorder');
+      }else if ($total > 0) {
         update_post_meta($product_id, '_stock_status', 'instock');
       } else {
         update_post_meta($product_id, '_stock_status', 'outofstock');
       } 
       wc_delete_product_transients( $product_id ); // Update product cache
+      
       echo $location_stock;      
       wp_die();
     }

@@ -205,20 +205,4 @@ if($locationRadius == "on"){
 <?php
 }
 ?>
-<script>
-  jQuery( document ).ready( function ( $ )
-{
 
-    $("#postal_code, #tag-name, #country").on("input", function(e) {
-        var postal_code = $('#postal_code').val();
-        var country = $('#country').val();
-        if (postal_code == '' || country == ''){
-            $('#submit').attr("disabled", true);
-            $('.alert-text').text('Please fill all mandatory fields.').show();  
-        }else{
-            $('#submit').attr('disabled', false);
-            $('.alert-text').hide();
-        }
-     });
-    })
-</script>

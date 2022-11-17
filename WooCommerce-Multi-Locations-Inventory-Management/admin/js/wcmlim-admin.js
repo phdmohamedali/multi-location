@@ -1,5 +1,6 @@
 jQuery( document ).ready( ( $ ) =>
 {
+
   jQuery('#lcpriority').on('keyup',function(){
     var lcpriority = jQuery( '#lcpriority' ).val();
     var url = window.location.href;
@@ -720,6 +721,8 @@ jQuery( document ).ready( ( $ ) =>
   } );
 
 
+  
+
   $( ".wcmlim_edit_stock_pro_list" ).on( "click", ( e ) =>
   {
     var product_id = e.target.getAttribute( "data-id" );
@@ -795,8 +798,6 @@ jQuery( document ).ready( ( $ ) =>
 
   } );
 
-
- 
   });
   
 
@@ -811,20 +812,18 @@ document.addEventListener( "wheel", function ( event )
   }
 } );
 
-
-jQuery( document ).ready( function ( $ )
-{
-$('#postal_code, #wcmlim_country, #wcmlim_autocomplete_address, #tag-name').on("keypress", function() {
- 
-var postal_code = $('#postal_code').val();
-var country = $('#country').val();
-        var postal_code = jQuery('#postal_code').val();
-        var country = jQuery('#wcmlim_country').val();
-        if(postal_code != '' && country != '')
-        {
-          $('#submit').attr('disabled', false);
-        }
-});
-
-   
-    })
+    jQuery( document ).ready( function ( $ )
+    {
+       
+      $("#postal_code, #tag-name, #country").on("input", function(e) {
+          var postal_code = $('#postal_code').val();
+            var country = $('#country').val();
+            if (postal_code == '' || country == ''){
+                $('#submit').attr("disabled", true);
+                $('.alert-text').text('Please fill all mandatory fields.').show();  
+            }else{
+                $('#submit').attr('disabled', false);
+                $('.alert-text').hide();
+            }
+         });
+        })

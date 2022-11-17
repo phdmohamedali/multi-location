@@ -119,7 +119,6 @@ foreach ($terms as $k => $term) {
 	}
 	$wcmlim_email = get_term_meta($term->term_id, 'wcmlim_email', true);
 	$titletext = "<div class='locator-store-block' id='" . $term->term_id . "'><h4>" . $term->name . "</h4>";
-	// $shop_page_url = get_permalink(wc_get_page_id('shop'));
 	$site_url = get_site_url();
 	$get_address_dir = str_replace(' ', '+', $get_address);
 
@@ -288,7 +287,6 @@ else {
 								</span>
 							<?php
 							}
-							// $shop_page_url = get_permalink(wc_get_page_id('shop'));
 							$site_url = get_site_url();
 							?>
 						</p>

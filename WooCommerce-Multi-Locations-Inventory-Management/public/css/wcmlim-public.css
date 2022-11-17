@@ -608,6 +608,7 @@
 
 .wclimlocsearch a {
   text-decoration: none;
+  cursor: pointer;
 }
 
 .locsoldout {
@@ -747,7 +748,7 @@
   background: #fafafa;
   display: inline-flex;
   margin-right: 5px;
-  align-items: center;
+  /* align-items: center; */
 }
 
 .rselect_location .wclimcol2 p {
@@ -775,8 +776,7 @@
 }
 
 .scwclimrow {
-  padding: 5px;
-  margin: 5px 0;
+  padding: 15px 5px 0px 5px;
   background: transparent;
   display: inline-flex;
 }
@@ -949,3 +949,12 @@ text-align: left;
 input[type=radio] {
   /* margin-top: 6px; */
 }
+.wclimadvlist .wclimrow
+{
+  width:100%;
+}
+.wclimadvlist input[type=radio]
+{
+  display:none;
+}
+ 

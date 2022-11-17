@@ -118,7 +118,6 @@ foreach ($terms as $k => $term) {
     }
     $wcmlim_email = get_term_meta($term->term_id, 'wcmlim_email', true);
     $titletext = "<div class='locator-store-block'><h4>" . $term->name . "</h4>";
-    // $shop_page_url = get_permalink(wc_get_page_id('shop'));
     $site_url = get_site_url();
     $get_address_dir = str_replace(' ', '+', $get_address);
 
@@ -265,7 +264,6 @@ update_option("store_on_map_arr", json_encode($store_on_map_arr));
                                 </span>
                             <?php
                             }
-                            // $shop_page_url = get_permalink(wc_get_page_id('shop'));
                             $site_url = get_site_url();
                             ?>
                         </p>

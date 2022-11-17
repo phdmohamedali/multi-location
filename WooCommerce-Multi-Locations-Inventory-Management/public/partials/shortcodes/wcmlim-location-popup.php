@@ -38,10 +38,10 @@ class Wcmlim_Location_Popup
         $show_in_popup = get_option("wcmlim_show_in_popup");
         $force_to_select = get_option("wcmlim_force_to_select_location");
 
-        wp_enqueue_style('wcmlim-magnificPopup', WCMLIM_URL_PATH . 'public/css/magnific-popup.css', array(), rand(), 'all');
-        wp_enqueue_style('wcmlim-popupcss', WCMLIM_URL_PATH . 'public/css/wcmlim-popup.css', array(), rand(), 'all');
+        wp_enqueue_style('wcmlim-magnificPopup', WCMLIM_URL_PATH . 'public/css/magnific-popup-min.css', array(), rand(), 'all');
+        wp_enqueue_style('wcmlim-popupcss', WCMLIM_URL_PATH . 'public/css/wcmlim-popup-min.css', array(), rand(), 'all');
         wp_enqueue_script('wcmlim-magnificPopup', WCMLIM_URL_PATH . 'public/js/jquery.magnific-popup.js', array('jquery'), rand(), true);
-        wp_enqueue_script('wcmlim-popupjs', WCMLIM_URL_PATH . 'public/js/wcmlim-popup.js', array('jquery'), rand(), true);
+        wp_enqueue_script('wcmlim-popupjs', WCMLIM_URL_PATH . 'public/js/wcmlim-popup-min.js', array('jquery'), rand(), true);
         wp_localize_script('wcmlim-popupjs', 'multi_inventory_popup', array('ajaxurl' => admin_url('admin-ajax.php'), 'show_in_popup' => $show_in_popup, 'force_to_select' => $force_to_select,));
     }
 

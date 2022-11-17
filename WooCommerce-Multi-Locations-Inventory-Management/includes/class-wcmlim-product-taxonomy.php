@@ -217,23 +217,11 @@ class Wcmlim_Product_Taxonomy
       $total = 0;
           $product_id = $value->ID;
           $product = wc_get_product($product_id);
-          $locations = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false));
-          if ($product->is_type('simple')) {
-            foreach ($locations as $location) {
-              $total +=  intval(get_post_meta($product_id, "wcmlim_stock_at_{$location->term_id}", true));
-            }
-            update_post_meta($product_id, '_stock', $total);
-          } elseif ($product->is_type('variable')) {
-            $variations = $product->get_available_variations();
-            foreach ($variations as $key => $value) {
-              $total = 0;
-              foreach ($locations as $location) {
-              $total +=  intval(get_post_meta($value['variation_id'], "wcmlim_stock_at_{$location->term_id}", true));
-              update_post_meta($value['variation_id'], "_stock",$total);
-            }
-          }
-       }
-      
+      $locations = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false));
+          foreach ($locations as $location) {
+            $total +=  intval(get_post_meta($product_id, "wcmlim_stock_at_{$location->term_id}", true));
+          }        
+          update_post_meta($product_id, '_stock', $total);
 
       } 
  }
@@ -342,6 +330,9 @@ class Wcmlim_Product_Taxonomy
       $wcmlim_lng = get_term_meta($term->term_id, 'wcmlim_lng', true);
       (isset($wcmlim_lng)) ? $wcmlim_lng : $wcmlim_lng = '';
 
+      $wcmlim_stockupp_pos = get_term_meta($term->term_id, 'wcmlim_stockupp_pos', true);
+      (isset($wcmlim_stockupp_pos)) ? $wcmlim_stockupp_pos : $wcmlim_stockupp_pos = '';
+
       ob_start();
       include_once plugin_dir_path(dirname(__FILE__)) . 'includes/views/taxonomy-fields-edit.php';
       $template = ob_get_contents();
@@ -435,7 +426,7 @@ class Wcmlim_Product_Taxonomy
       update_term_meta($term_id, 'wcmlim_dimension_unit', $wcmlim_dimension_unit);      
       update_term_meta($term_id, 'wcmlim_lat', sanitize_text_field($_POST['wcmlim_lat']));
       update_term_meta($term_id, 'wcmlim_lng', sanitize_text_field($_POST['wcmlim_lng']));
-
+      update_term_meta($term_id, 'wcmlim_stockupp_pos', $_POST['wcmlim_stockupp_pos']);
     }
 
     if ($_POST && isset($_POST['wcmlim_street_address']) && isset($_POST['wcmlim_city']) && isset($_POST['wcmlim_postcode']) && isset($_POST['wcmlim_country_state'])) {
@@ -449,7 +440,6 @@ class Wcmlim_Product_Taxonomy
       update_term_meta($term_id, 'wcmlim_start_time', sanitize_text_field($_POST['wcmlim_start_time']));
       update_term_meta($term_id, 'wcmlim_end_time', sanitize_text_field($_POST['wcmlim_end_time']));
       update_term_meta($term_id, 'wcmlim_dimension_unit', sanitize_text_field($_POST['wcmlim_dimension_unit']));      
-
       $pwsz = isset($_POST['wcmlim_shipping_zone']) ? (array) $_POST['wcmlim_shipping_zone'] : array();
       $pwsz = array_map('esc_attr', $pwsz);
       update_term_meta($term_id, 'wcmlim_shipping_zone', $pwsz);
@@ -470,6 +460,7 @@ class Wcmlim_Product_Taxonomy
       update_term_meta($term_id, 'wcmlim_service_radius_for_location', sanitize_text_field($_POST['wcmlim_service_radius']));      
       update_term_meta($term_id, 'wcmlim_lat', sanitize_text_field($_POST['wcmlim_lat']));
       update_term_meta($term_id, 'wcmlim_lng', sanitize_text_field($_POST['wcmlim_lng']));
+      update_term_meta($term_id, 'wcmlim_stockupp_pos', sanitize_text_field($_POST['wcmlim_stockupp_pos']));
 
     }
     $wsz = isset($_POST['wcmlim_shipping_zone']) ? (array) $_POST['wcmlim_shipping_zone'] : array();
@@ -511,6 +502,8 @@ class Wcmlim_Product_Taxonomy
       $wcmlim_tax_locations = get_term_meta( $term_id, 'wcmlim_tax_locations' , true );
       $wcmlim_lat = get_term_meta( $term_id, 'wcmlim_lat' , true );
       $wcmlim_lng = get_term_meta( $term_id, 'wcmlim_lng' , true );
+      $wcmlim_stockupp_pos = get_term_meta( $term_id, 'wcmlim_stockupp_pos' , true );
+
 
       $term_meta = [
         'wcmlim_street_number' => $streetNumber,
@@ -528,6 +521,7 @@ class Wcmlim_Product_Taxonomy
         'wcmlim_pos_compatiblity' => $wcmlim_pos_compatiblity,
         'wcmlim_wcpos_compatiblity' => $wcpos_selected_outlet,
         'wcmlim_shipping_method' => $wcmlim_shipping_method,
+        'wcmlim_stockupp_pos' => $wcmlim_stockupp_pos,
         'wcmlim_allow_pickup' => $allow_pickup,
         'wcmlim_service_radius' => $service_radius,
         'wcmlim_lat' => $wcmlim_lat,
@@ -558,6 +552,7 @@ class Wcmlim_Product_Taxonomy
       $wcpos_selected_outlet = get_term_meta($term_id, 'wcmlim_wcpos_compatiblity', true);
       $wcmlim_lat = get_term_meta( $term_id, 'wcmlim_lat' , true );
       $wcmlim_lng = get_term_meta( $term_id, 'wcmlim_lng' , true );
+      $wcmlim_stockupp_pos = get_term_meta( $term_id, 'wcmlim_stockupp_pos' , true );
 
       $allow_pickup = get_term_meta($term_id, 'wcmlim_allow_pickup', true);
       $service_radius = get_term_meta($term_id, 'wcmlim_service_radius_for_location', true);
@@ -580,6 +575,7 @@ class Wcmlim_Product_Taxonomy
         'wcmlim_pos_compatiblity' => $wcmlim_pos_compatiblity,
         'wcmlim_wcpos_compatiblity' => $wcpos_selected_outlet,
         'wcmlim_shipping_method' => $wcmlim_shipping_method,
+        'wcmlim_stockupp_pos' => $wcmlim_stockupp_pos,
         'wcmlim_allow_pickup' => $allow_pickup,
         'wcmlim_lat' => $wcmlim_lat,
         'wcmlim_lng' => $wcmlim_lng,

@@ -35,6 +35,12 @@ class Wcmlim_Rest_Api
             'callback' => [$this, 'wcmlim_rest_create_location'],
             'permission_callback' => '__return_true',
         ));
+        // *Register Locations update rest route
+        register_rest_route( 'wc/v3', '/update/stockupppos/outlet/stock/', array(
+            'methods'   => 'POST',
+            'callback' => [$this, 'wcmlim_rest_update_outlet_location_stock'],
+            'permission_callback' => '__return_true',
+        ));
 
         // *Register Locations update rest route
         register_rest_route( 'wc/v3', '/locations/update/(?P<id>\d+)', array(
@@ -54,6 +60,13 @@ class Wcmlim_Rest_Api
         register_rest_route( 'wc/v3', '/locations/read/(?P<id>\d+)', array(
             'methods' => 'GET',
             'callback' => [$this, 'wcmlim_rest_read_location'],
+            'permission_callback' => '__return_true',
+        ));
+
+        // *Register Locations update rest route
+        register_rest_route( 'wc/v3', '/get/mappinglocation/outlet/(?P<id>\d+)', array(
+            'methods' => 'GET',
+            'callback' => [$this, 'wcmlim_rest_read_outlet_location_id'],
             'permission_callback' => '__return_true',
         ));
     }
@@ -106,7 +119,152 @@ class Wcmlim_Rest_Api
         }
         return $termtmp;
     }
-    
+     //get stockupp pos outlets location id rest api endpoint callback
+     function wcmlim_rest_update_outlet_location_stock(WP_REST_Request $request)
+     {
+         
+        $response = array();
+        $parameter = $request->get_params();
+
+       
+        if(empty($parameter)){
+            $response['status'] = 404;
+            $response['messgae'] = 'Not Found...!';
+            return $response;
+        }
+
+        if($parameter){
+            $parameter = $parameter[0];
+        }
+        $order_id = isset($parameter['order_id']) ? $parameter['order_id'] : "";
+        $location_id = isset($parameter['location_id']) ? $parameter['location_id'] : "";
+        
+        $order = wc_get_order($order_id);
+        
+        if (!$order) {
+        return;
+        }
+
+        //updatestock code locationwise from stockupp pos code starts here
+
+        if (is_a($order_id, 'WC_Order')) {
+            $order    = $order_id;
+            $order_id = $order->get_id();
+        } else {
+            $order = wc_get_order($order_id);
+        }
+        					
+		$terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
+        foreach ($order->get_items() as $item) {
+            if (!$item->is_type('line_item')) {
+                continue;
+            }
+            // Only reduce stock once for each item.
+            $product            = $item->get_product();
+            $product_id = $product->get_id();
+            
+            $item_stock_reduced = $item->get_meta('_reduced_stock', true);
+            
+            // *WooCommerce Point Of Sale by Actuality Extensions compatibility
+            $foundTermID= $location_id; 
+            $qty       = apply_filters('woocommerce_order_item_quantity', $item->get_quantity(), $order, $item);
+            $item_name = $product->get_formatted_name();
+            $order = wc_get_order( $order_id ); 
+            $item->add_meta_data('_reduced_stock', $qty, true);
+            $item->save();
+            $product_current_qty_at = get_post_meta($product_id, "wcmlim_stock_at_{$foundTermID}", true);
+          
+        $postmeta_backorders_product = get_post_meta($product_id, '_backorders', true);
+        //reduce stock code starts here
+        
+        if((($product_current_qty_at <= 0 ) || ($product_current_qty_at >= 0 ) || ( $product_current_qty_at = ''))  && (($postmeta_backorders_product == "yes") || ($postmeta_backorders_product == "notify")))
+        {
+           
+
+        $product_updated_qty = intval($product_current_qty_at) - intval($qty);
+        $term_name = get_term( $foundTermID )->name;
+
+        $product = wc_get_product( $product_id );
+
+        $loc_order_notes[]    = "{ Stock levels reduced: {$product->get_formatted_name()}  from Location: {$term_name} {$product_current_qty_at} &rarr; {$product_updated_qty} }";
+        $order->add_order_note(implode(', ', $loc_order_notes));
+
+        update_post_meta($product_id, "wcmlim_stock_at_{$foundTermID}", $product_updated_qty);
+        $arr_stock = array();
+        $terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
+
+        foreach ($terms as $key => $value) {
+        $loc_stock_val = intval(get_post_meta( $product_id, "wcmlim_stock_at_{$value->term_id}" , true ));
+        array_push($arr_stock, $loc_stock_val);
+        $total_stock_qty = array_sum($arr_stock);
+        }
+        update_post_meta($product_id, "_stock", $total_stock_qty);
+        wp_update_post($product_id);
+        }
+        else{
+            if($qty > $product_current_qty_at){
+        $product_updated_qty = 0;
+            }
+            else
+            {
+        $product_updated_qty = intval($product_current_qty_at) - intval($qty);
+            }
+        $term_name = get_term( $foundTermID )->name;
+
+        $product = wc_get_product( $product_id );
+
+        $loc_order_notes[]    = "{ Stock levels reduced: {$product->get_formatted_name()}  from Location: {$term_name} {$product_current_qty_at} &rarr; {$product_updated_qty} }";
+        $order->add_order_note(implode(', ', $loc_order_notes));
+
+        update_post_meta($product_id, "wcmlim_stock_at_{$foundTermID}", $product_updated_qty);
+        $arr_stock = array();
+        $terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
+
+        foreach ($terms as $key => $value) {
+        $loc_stock_val = intval(get_post_meta( $product_id, "wcmlim_stock_at_{$value->term_id}" , true ));
+        array_push($arr_stock, $loc_stock_val);
+        $total_stock_qty = array_sum($arr_stock);
+        }
+        update_post_meta($product_id, "_stock", $total_stock_qty);
+        wp_update_post($product_id);
+        }
+        //reduce stock code ends here
+    }
+        $termtmp = array("Order stock updated");
+        return $termtmp;
+    }
+     function wcmlim_rest_read_outlet_location_id(WP_REST_Request $request)
+     {
+         $pos_outlet_term_id = isset($request['id']) ? $request['id'] : "" ;
+         global $return_mapping_termid;
+         if(isset($pos_outlet_term_id)){
+             $termtmp = array();
+ 
+             $taxonomy_name = 'locations';
+             // Retrieve taxonomy terms
+             $terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
+             $counter = 0;
+             foreach ($terms as $term) {
+            $wcmlim_stockupp_pos = get_term_meta($term->term_id, 'wcmlim_stockupp_pos', true);
+
+                 if($wcmlim_stockupp_pos == $pos_outlet_term_id)
+                 {
+                     if($counter == 0)
+                     {
+                        $termtmp[] = $term->term_id;
+                    }
+                    $counter++;
+                 }
+             }
+         }else{
+             $termtmp = array("Requested Outlet #{$pos_outlet_term_id} not found"); 
+         }
+         if(empty($termtmp))
+         {
+             $termtmp = array("Requested Outlet #{$pos_outlet_term_id} mapping not found");
+         }
+         return $termtmp;
+     }
     //update location rest api endpoint callback
     function wcmlim_rest_update_location(WP_REST_Request $request)
     {

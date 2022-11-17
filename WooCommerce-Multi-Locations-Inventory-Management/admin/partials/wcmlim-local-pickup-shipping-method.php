@@ -77,7 +77,7 @@ function wcmlim_local_shipping_init()
   }
 }
 // show address in below local-pickup selection on checkout page -codeinit
-// add_action('woocommerce_review_order_before_payment', 'details');
+
 function details($pickup_location_term)
   {
     if(get_option('wcmlim_allow_local_pickup') == 'on' && get_option('wcmlim_allow_only_backend') == 'on'){
@@ -105,12 +105,12 @@ function wcmlim_show_address_on_checkout()
         $location_name = $term->name;
         if ($term_id == $term->term_id) {
           $street_address = get_term_meta(
-            $term_id,
+            $term->term_id,
             'wcmlim_street_number',
             true
           );
-          $city = get_term_meta($term_id, 'wcmlim_route', true);
-          $locality = get_term_meta($term_id, 'wcmlim_locality', true);
+          $city = $location_name;
+          // $city = get_term_meta($term_id, 'wcmlim_route', true);
           $postcode = get_term_meta($term_id, 'wcmlim_postal_code', true);
           $state = get_term_meta(
             $term_id,
@@ -128,7 +128,6 @@ function wcmlim_show_address_on_checkout()
           $term_meta = array(
             'street_address' => $street_address,
             'wcmlim_city' => $city,
-            'wcmlim_locality'=>$locality,
             'wcmlim_postcode' => $postcode,
             'wcmlim_state_code' => $wcmlim_state_code,
             'wcmlim_state' => $state,
@@ -343,25 +342,14 @@ function wcmlim_wc_cart_totals_before_order_total()
               }
 			  else if(!in_array( $arrayloc, $locAdd ) && $pickup == null && $isClearCart == false ) 
               {     
-				$pickup_add = true;  
-				// wc_add_notice( $term->name . " " . $pickup_valid . " ", 'error' );                         
+				$pickup_add = true;                         
 				$cart_message .= $term->name . " " . $pickup_valid . "<br>"; 
 				array_push( $pickupAdd, $pickup_add );
 				array_push( $locAdd, $arrayloc );
               }
               else if(!in_array( $arrayloc, $locAdd ) && $pickup == null && $isClearCart != false )
               {     
-				// $pickup_add = false; 
-				// array_push( $pickupAdd, $pickup_add );   
-        // wc_add_notice( $term->name . " " . $pickup_valid . " ", 'error' );                         
-				// $cart_message .= $term->name . " " . $pickup_valid . "<br>"; 
-				// array_push( $locAdd, $arrayloc );
-				// echo "<script language='javascript'>
-				// jQuery( document ).ready(function($) {
-				// $('#place_order').hide(); 
-				// $('.checkout-button').hide(); 
-				// });
-				// </script>";
+				
               }			 
 			
             } 
@@ -369,23 +357,10 @@ function wcmlim_wc_cart_totals_before_order_total()
 		
         }
       }
-	 
-	  // if(count(array_unique($pickupAdd)) === 1 && $isClearCart == false )  {
-		// echo "<script language='javascript'>
-		// jQuery( document ).ready(function($) {
-		//   $('#place_order').hide(); 
-		//   $('.checkout-button').hide(); 
-		// });
-		// </script>";
-		// } 
 
       if (!empty($cart_message)) {
 ?>
-        <!-- <tr class="shipping-pickup-store">
-          <td colspan="2">
-            <p class="message"><?= $cart_message ?></p>
-          </td>
-        </tr> -->
+       <?= $cart_message ?>
       <?php
       }
       
@@ -472,16 +447,13 @@ function wcmlim_location_row_layout()
               $state = get_term_meta($term_id, 'wcmlim_administrative_area_level_1', true);
               $postal_code = get_term_meta($term_id, 'wcmlim_postal_code', true);
               $country = get_term_meta($term_id, 'wcmlim_country', true);
-              $email = get_term_meta($term_id, 'wcmlim_email', true);
-              $phone= get_term_meta($term_id, 'wcmlim_phone', true);
 			  $pickup = get_term_meta($term_id, 'wcmlim_allow_pickup', true);
 			  $isClearCart = get_option('wcmlim_clear_cart');
 			   $arrayloc = $streetNumber . " " . $locality . " " . $state . " " . $route;
          $new_address = '';
          if(!empty($streetNumber)){
           $new_address .=  $streetNumber.',';
-         }
-         if(!empty($route)){
+         }if(!empty($route)){
           $new_address .=  $route.',';
          }
          if(!empty($locality)){
@@ -495,11 +467,6 @@ function wcmlim_location_row_layout()
          }if(!empty($country)){
           $new_address .=  $country;
          }
-         if(!empty($email)){
-          $new_address .= ' '. "<br>"." <b>Email Address:</b> ". $email;
-         }if(!empty($phone)){
-          $new_address .= ' '. "<br>"." <b>Phone No:</b> ". $phone;
-         }
          $cart_message = "<b>Product ".$product_obj_name." </b><br /> <small>Pickup Address for $term_name: </small>" . $new_address. "<br/>";
         if (!empty($cart_message)) {
           ?>
@@ -512,12 +479,7 @@ function wcmlim_location_row_layout()
           }
           }}}}
 	  if(count(array_unique($pickupAdd)) === 1 && $isClearCart == false )  {
-		// echo "<script language='javascript'>
-		// jQuery( document ).ready(function($) {
-		//   $('#place_order').hide(); 
-		//   $('.checkout-button').hide(); 
-		// });
-		// </script>";
+		
 		} 
     
     } elseif (get_option('wcmlim_allow_only_backend') == 'on') {
@@ -575,7 +537,7 @@ function wcmlim_location_save_order_meta($order_id)
       foreach ($order->get_items() as $item_id => $item) {
         $product_id = $item->get_product_id();
         wc_add_order_item_meta($item_id, "Location", $term->name);
-        wc_add_order_item_meta($item_id, "_selectedLocTermId", $term->term_id);
+        wc_add_order_item_meta($item_id, "selectedLocTermId", $term->term_id);
       }
     }
   }

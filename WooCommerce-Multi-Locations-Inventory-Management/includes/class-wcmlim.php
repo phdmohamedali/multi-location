@@ -194,9 +194,8 @@ class Wcmlim
 
     // hooks and filters for display location on product list admin page
     $this->loader->add_filter('manage_edit-product_columns', $plugin_admin, 'wcmlim_remove_default_tcoloumn', 10, 1);
-    $this->loader->add_action('manage_posts_custom_column', $plugin_admin, 'wcmlim_populate_locations_column');
     $this->loader->add_action('manage_posts_custom_column', $plugin_admin, 'wcmlim_populate_stock_column');
-
+    $this->loader->add_action('manage_posts_custom_column', $plugin_admin, 'wcmlim_populate_locations_column');
     $this->loader->add_action('restrict_manage_posts', $plugin_admin, 'wcmlim_filter_by_taxonomy_locations', 10, 2);
 
   // hooks and filters for display location Price on product list admin page
@@ -318,6 +317,7 @@ class Wcmlim
     $this->loader->add_action("wp_ajax_populate_shipping_methods", $plugin_admin, "wcmlim_dynamic_shipping_methods");
     $this->loader->add_action("wp_ajax_wcmlim_deactivate_plugin", $plugin_admin, "wcmlim_deactivate_plugin");
     $this->loader->add_action("wp_ajax_wcmlim_submit_feedback", $plugin_admin, "wcmlim_submit_feedback");
+    $this->loader->add_action('admin_notices', $plugin_admin,'support_validator_admin_notice');
     $this->loader->add_action('admin_footer', $plugin_admin,'feedback_form_module');
     $this->loader->add_action( 'manage_posts_extra_tablenav', $plugin_admin, 'admin_order_list_top_bar_button');
     $this->loader->add_action( 'added_post_meta',$plugin_admin, 'wcmlim_sync_on_product_save', 10, 4 );
@@ -328,8 +328,6 @@ class Wcmlim
     $this->loader->add_action("wp_ajax_wcmlim_get_lcpriority", $plugin_admin, "wcmlim_get_lcpriority");
     $this->loader->add_action("wp_ajax_priv_wcmlim_get_lcpriority", $plugin_admin, "wcmlim_get_lcpriority");
 
-       /** New changes */
-    $this->loader->add_action('woocommerce_restock_refunded_item',  $plugin_admin,'wcmlim_restore_stock_after_order_refund', 10, 5);
   }
   /**
    * Register all of the hooks related to the public-facing functionality
@@ -346,7 +344,7 @@ class Wcmlim
 
       $this->loader->add_action('wp_enqueue_scripts', $plugin_public, 'enqueue_styles');
       $this->loader->add_action('wp_enqueue_scripts', $plugin_public, 'enqueue_scripts');
-
+      $hide_out_of_stock_location   = get_option('wcmlim_hide_show_location_dropdown');
       $geo_location     = get_option('wcmlim_geo_location');
       $enable_price     = get_option('wcmlim_enable_price');
       $ispreferred      = get_option('wcmlim_preferred_location');
@@ -358,9 +356,11 @@ class Wcmlim
       $widgetOnShop = get_option("wcmlim_use_location_widget");
       $restricUsers   = get_option('wcmlim_enable_userspecific_location');   
       $isLocationsGroup = get_option('wcmlim_enable_location_group');
-      if ($restricUsers == "on") {
+      
+      if (($restricUsers == "on" ) && ( get_current_user_id() )) {
+        
         add_action('wp_enqueue_scripts', function () {
-          wp_enqueue_script( 'usspecloc_js', plugins_url('', dirname(__FILE__) ) . '/public/js/specloc.js', array('jquery'), rand() );
+          wp_enqueue_script( 'usspecloc_js', plugins_url('', dirname(__FILE__) ) . '/public/js/specloc-min.js', array('jquery'), rand() );
         });        
       }
       if ($isLocationsGroup == "on") {
@@ -394,6 +394,10 @@ class Wcmlim
       $this->loader->add_action('wp_ajax_wcmlim_closest_location', $plugin_public, 'wcmlim_closest_location');
       $this->loader->add_action('wp_ajax_nopriv_wcmlim_closest_location', $plugin_public, 'wcmlim_closest_location');
 
+      $this->loader->add_action('wp_ajax_wcmlim_closest_instock_location', $plugin_public, 'wcmlim_closest_instock_location');
+      $this->loader->add_action('wp_ajax_nopriv_wcmlim_closest_instock_location', $plugin_public, 'wcmlim_closest_instock_location');
+
+
       $this->loader->add_action('woocommerce_before_add_to_cart_button', $plugin_public, 'wcmlim_display_location');
 
       $this->loader->add_action('wp_ajax_wcmlim_display_location', $plugin_public, 'wcmlim_display_location_dropdown');
@@ -424,7 +428,9 @@ class Wcmlim
       if ($locationPriceOnShop == 'on') {
         $this->loader->add_filter('woocommerce_get_price_html', $plugin_public, 'wcmlim_change_product_price', 10, 2);
       }
-
+     if ($hide_out_of_stock_location == 'on') {
+      $this->loader->add_filter('woocommerce_get_availability_text', $plugin_public, 'wcmlim_stock_availability_location', 10, 2);
+    }
       // $this->loader->add_action('woocommerce_after_shop_loop_item', $plugin_public, 'wcmlim_locations_on_shop', 1);
       $this->loader->add_filter('woocommerce_loop_add_to_cart_link', $plugin_public, 'wcmlim_replacing_add_to_cart_button', 10, 2);
       $this->loader->add_action('wp_ajax_wcmlim_ajax_add_to_cart', $plugin_public, 'wcmlim_ajax_add_to_cart');
@@ -446,7 +452,7 @@ class Wcmlim
       $this->loader->add_action('woocommerce_order_status_processing', $plugin_public, "wcmlim_maybe_reduce_stock_levels");
       $this->loader->add_action('woocommerce_order_status_on-hold', $plugin_public, "wcmlim_maybe_reduce_stock_levels");
 
-      $this->loader->add_action('woocommerce_order_status_cancelled', $plugin_public, 'wcmlim_maybe_increase_stock_levels');
+      $this->loader->add_action('woocommerce_order_status_cancelled', $plugin_public, 'wcmlim_oncancel_increase_stock_levels');
       $this->loader->add_action('woocommerce_order_status_pending', $plugin_public, 'wcmlim_maybe_increase_stock_levels');
 
       // * OpenPOS Compatibility
@@ -497,6 +503,12 @@ class Wcmlim
       if(in_array('woocommerce-shipstation-integration/woocommerce-shipstation.php', apply_filters('active_plugins', get_option('active_plugins')))){
         add_filter( 'woocommerce_shipstation_export_custom_field_2', array($plugin_public, 'wcmlim_shipstation_custom_field_2'), 10, 2 );
       }
+
+      //advanced list view ajax for location information
+      $this->loader->add_action('wp_ajax_wcmlim_prepare_advanced_view_information', $plugin_public, 'wcmlim_prepare_advanced_view_information');
+      $this->loader->add_action('wp_ajax_nopriv_wcmlim_prepare_advanced_view_information', $plugin_public, 'wcmlim_prepare_advanced_view_information');
+      
+
     }
   }
 

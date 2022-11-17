@@ -128,7 +128,6 @@ class Wcmlim_Custom_Inventory_Fields
         'class'         => 'woocommerce noscroll',
         'type'          => 'number',
         
-        // 'data_type'     => 'stock',
         'value'         => get_post_meta($product_id, 'wcmlim_stock_at_' . $term->term_id, true),
         'custom_attributes' => array(
           'step' => 'any',
@@ -150,7 +149,7 @@ class Wcmlim_Custom_Inventory_Fields
             'desc_tip'      => true,
             'class'         => 'woocommerce',
             'type'          => 'number',
-            // 'data_type'     => 'stock',
+        
             'value'         => get_post_meta($product_id, "wcmlim_stock_at_{$parentTerm->term_id}", true),
             'custom_attributes' => array(
               'step' => 'any',
@@ -187,7 +186,6 @@ class Wcmlim_Custom_Inventory_Fields
     // Get product object
     $product = wc_get_product($post_id);
     $product_type = $product->get_type();
-    // if($product_type !== "simple"){ return; }
     
     if (empty($product)) return;
 
@@ -249,7 +247,6 @@ class Wcmlim_Custom_Inventory_Fields
         if ($counter === $terms_total) {
           update_post_meta($post_id, '_stock', array_sum($input_amounts));
         }
-        // }
 
         $Pterms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => $term->term_id));
         $Pterms_total = count($Pterms);
@@ -357,7 +354,6 @@ class Wcmlim_Custom_Inventory_Fields
     if (!$manage_stock) {
 		$resetTerms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false));
 		foreach ($resetTerms as $rT) {
-			// update_post_meta($var_post_id, "wcmlim_stock_at_{$rT->term_id}", 0);
 		}
       return;
     }
@@ -615,9 +611,14 @@ class Wcmlim_Custom_Inventory_Fields
             'placeholder' => __('Input regular price for location', 'wcmlim'),
             'desc_tip' => 'true',
             'description' => __('The amount of credits for this product in currency format.', 'wcmlim'),
-            'value'     => get_post_meta($variation->ID, "wcmlim_regular_price_at_{$term->term_id}", true),
             'type' => 'text',
-            'class'         => 'woocommerce'
+            'class'         => 'woocommerce wcmlim_variable_product_regular_price',
+            'attr' => "data-id=$term->term_id",
+            'value'     => get_post_meta($variation->ID, "wcmlim_regular_price_at_{$term->term_id}", true),
+            'custom_attributes' => array(
+              'loc-id' 	=> $term->term_id,
+              'pro-id' 	=> $variation->ID
+            )
           )
         );
 
@@ -631,9 +632,14 @@ class Wcmlim_Custom_Inventory_Fields
             'placeholder' => __('Input Sale price for location', 'wcmlim'),
             'desc_tip' => 'true',
             'description' => __('The amount of credits for this product in currency format.', 'wcmlim'),
-            'value'     => get_post_meta($variation->ID, "wcmlim_sale_price_at_{$term->term_id}", true),
             'type' => 'text',
-            'class'         => 'woocommerce'
+            'class'         => 'woocommerce wcmlim_variable_product_sale_price',
+            'attr' => "data-id=$term->term_id",
+            'value'     => get_post_meta($variation->ID, "wcmlim_sale_price_at_{$term->term_id}", true),
+            'custom_attributes' => array(
+              'loc-id' 	=> $term->term_id,
+              'pro-id' 	=> $variation->ID
+            )
           )
         );
 
@@ -671,7 +677,6 @@ class Wcmlim_Custom_Inventory_Fields
     if (!$manage_stock) {
 		$resetTerms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false));
 		foreach ($resetTerms as $rT) {
-			// update_post_meta($variation_id, "wcmlim_stock_at_{$rT->term_id}", 0);
 		}
       return;
     }
@@ -686,10 +691,6 @@ class Wcmlim_Custom_Inventory_Fields
         update_post_meta($variation_id, 'wcmlim_default_location',  '');
       }
     }
-
-  // $chgloc=get_post_meta( $product->get_id() , 'wcmlim_default_location', true );
-  // echo 'hrllooo'.$chgloc;
-  
     // Grab stock amount from all terms
     $product_terms_stock = array();
 
@@ -903,8 +904,14 @@ class Wcmlim_Custom_Inventory_Fields
             'desc_tip' => 'false',
             'description' => __('The amount of credits for this product in currency format.', 'wcmlim'),
             'type' => 'text',
-            'class' => 'woocommerce',
-            'value' => get_post_meta($post_id, "wcmlim_regular_price_at_{$term->term_id}", true)
+            'class' => 'woocommerce wcmlim_product_regular_price',
+            'attr' => "data-id=$term->term_id",
+            'value' => get_post_meta($post_id, "wcmlim_regular_price_at_{$term->term_id}", true),
+            'custom_attributes' => array(
+              'loc-id' 	=> $term->term_id,
+              'pro-id' 	=> $post_id
+
+            ) 
           )
         );
 
@@ -919,8 +926,14 @@ class Wcmlim_Custom_Inventory_Fields
             'desc_tip' => 'false',
             'description' => __('The amount of credits for this proroduct in currency format.', 'wcmlim'),
             'type' => 'text',
-            'class' => 'woocommerce',
-            'value' => get_post_meta($post_id, "wcmlim_sale_price_at_{$term->term_id}", true)
+            'class' => 'woocommerce wcmlim_product_sale_price',
+            'attr' => "data-id=$term->term_id",
+            'value' => get_post_meta($post_id, "wcmlim_sale_price_at_{$term->term_id}", true),
+            'custom_attributes' => array(
+              'loc-id' 	=> $term->term_id,
+              'pro-id' 	=> $post_id
+            )
+
           )
         );
 

@@ -51,24 +51,13 @@ class Wcmlim_Backend_Only_Mode
       } elseif ( $fulfilment_rule == "maxinvloc" || $fulfilment_rule == "locappriority" || $fulfilment_rule == "nearby_instock" ) {
         add_action('woocommerce_thankyou',  array($this, 'wcmlim_fulfil_saved_order_items'),  10, 4);
       } 
-      // elseif ($fulfilment_rule == "shipping_loc") {
-      //   add_action('woocommerce_thankyou',  array($this, 'wcmlim_fulfil_order_shipping_zones'),  10, 1);
-      // }
-      // add_filter('woocommerce_hidden_order_itemmeta',  array($this, 'wcmlim_hidden_order_itemmeta'), 50);
       add_filter('woocommerce_hidden_order_itemmeta', [$plugin_public,'hidden_order_itemmeta'], 50);
-    // }
+    
     add_action("woocommerce_payment_complete", [$plugin_public, "wcmlim_maybe_reduce_stock_levels"]);
     add_action('woocommerce_order_status_completed', [$plugin_public, "wcmlim_maybe_reduce_stock_levels"]);
     add_action('woocommerce_order_status_processing', [$plugin_public, "wcmlim_maybe_reduce_stock_levels"]);
+    add_action('woocommerce_order_status_cancelled', [$plugin_public, 'wcmlim_oncancel_increase_stock_levels']);
     add_action('woocommerce_order_status_on-hold', [$plugin_public, "wcmlim_maybe_reduce_stock_levels"]);
-    add_action('woocommerce_order_status_cancelled', [$plugin_public, 'wcmlim_maybe_increase_stock_levels']);
-    add_action('woocommerce_order_status_pending', [$plugin_public, 'wcmlim_maybe_increase_stock_levels']);
-
-    add_action( 'wp_enqueue_scripts', 'pr_cycle_scripts' );
-    function pr_cycle_scripts (){
-      wp_register_script('pr_cycle_all',get_stylesheet_directory_uri().'/js/pr-slider.js');
-      wp_enqueue_script('pr_cycle_all');
-    }
   }
   
   /**
@@ -82,10 +71,10 @@ class Wcmlim_Backend_Only_Mode
     {
     $this->version = '3.2.1';
       wp_enqueue_script('jquery');
-      wp_register_script('wcmlim_show_address', WCMLIM_URL_PATH . 'public/js/wcmlim-show-address.js', array('jquery'), rand(), false);
+      wp_register_script('wcmlim_show_address', WCMLIM_URL_PATH . 'public/js/wcmlim-show-address-min.js', array('jquery'), rand(), false);
       wp_enqueue_script('wcmlim_show_address');
       wp_localize_script( 'wcmlim_show_address', 'admin_url', array('ajax_url' => admin_url( 'admin-ajax.php' ) ) );
-      wp_enqueue_style('wcmlim_frontview_css', WCMLIM_URL_PATH . '/public/css/wcmlim-public.css', array(), $this->version, 'all');
+      wp_enqueue_style('wcmlim_frontview_css', WCMLIM_URL_PATH . '/public/css/wcmlim-public-min.css', array(), $this->version, 'all');
     
     }
   //enqueue js scripts while backend only mode is enabled -endcode
@@ -113,18 +102,18 @@ class Wcmlim_Backend_Only_Mode
     // Ensure stock is marked as "reduced" in case payment complete or other stock actions are called.
     $order->get_data_store()->set_stock_reduced($order_id, true);
   }
+
   public function action_woocommerce_saved_order( $order_id, $items = null ) {
 
-    // var_dump($_POST['action']);die;
     $postaction = isset($_POST['action']) ? $_POST['action'] : "";
     $post_type = get_post_type( $order_id);
-// var_dump($post_type); die;
-// editpost
-		if ( 'shop_order' !== $post_type ) {
-			return;
-		}	
-		$order        = wc_get_order( $order_id );
+    if ( 'shop_order' != $post_type ) {
+      return;
+    } 
+    $order        = wc_get_order( $order_id );
     $item_storeid = array(); 
+    // Get Order Status
+    $orderstatus   = $order->get_status();
     // Loop through order items
     foreach ( $order->get_items() as $item_id => $item ) {     
       $v = $item_id;   
@@ -133,40 +122,44 @@ class Wcmlim_Backend_Only_Mode
       $order_s2 = '_locationKey_'.$item_id;
       $sltermid = filter_input( INPUT_POST,  $order_s1 );
       $sltermkey = filter_input( INPUT_POST,  $order_s2 );
-      $term_name = get_term( $sltermid )->name;
+  
       if('shop_order' == $post_type && $postaction == "editpost"){
-        $tid = wc_get_order_item_meta( $v, '_selectedLocTermId');
+        $tid = wc_get_order_item_meta( $item_id, 'selectedLocTermId', true);
         $tlc = get_term( $tid )->name;
-        // var_dump((int)$sltermid);
       }
-      // die;
-      $_lcti = (!empty($sltermid)) ? $sltermid : wc_get_order_item_meta( $v, '_selectedLocTermId');
-      $_lc = (!empty($term_name)) ? $term_name : wc_get_order_item_meta( $v, 'Location', true);
-      $_lctk = (!empty($sltermkey) || $sltermkey == 0) ? $sltermkey : wc_get_order_item_meta( $v, '_selectedLocationKey');
+     
+      $_lcti =  ($sltermid == null || $sltermid == false) ? intval(wc_get_order_item_meta( $item_id, 'selectedLocTermId', true)) : intval($sltermid);
+      $_lctk = ($sltermkey == null || $sltermkey == false || $sltermkey == 0) ? $_lctk =  intval(wc_get_order_item_meta( $item_id, 'selectedLocationKey', true)) : intval($sltermkey);
+      $term_name = get_term( $_lcti )->name;
+      $_lc = (!empty($term_name)) ? $term_name : wc_get_order_item_meta( $item_id, 'Location', true);
+     
       $product    = $item->get_product();
       $product_id = $item->get_variation_id() ? $item->get_variation_id() : $item->get_product_id();
       $item_name = $product->get_formatted_name();
-      if(!empty($_lc)){
-        wc_update_order_item_meta( $v, 'Location', $term_name, $_lc );
-      }else{
-        wc_add_order_item_meta($v, 'Location', $term_name);
+
+      if($_lc){
+         wc_update_order_item_meta( $item_id, 'Location', $_lc );
+
+      } else {
+         wc_add_order_item_meta($item_id, 'Location', $_lc);
       }
 
       if(!empty($_lctk) || $_lctk == 0){
-        wc_update_order_item_meta( $v, '_selectedLocationKey', $sltermkey, $_lctk );
-      }else{
-        wc_add_order_item_meta($v, '_selectedLocationKey', $sltermkey);
-      }
-      if(!empty($_lcti)){
-         wc_update_order_item_meta( $v, '_selectedLocTermId', $sltermid, $tid );
+         wc_update_order_item_meta( $item_id, 'selectedLocationKey', $_lctk );
 
-        if((int)$sltermid !== $tid) {
+      }else{
+        wc_add_order_item_meta($item_id, 'selectedLocationKey', $_lctk);
+      }
+      if(!empty($_lcti)){      
+          wc_update_order_item_meta($item_id, 'selectedLocTermId', $_lcti );
+
+        if((int)$sltermid != $tid) {
           $selLocQty = get_post_meta($product_id, "wcmlim_stock_at_{$tid}", true);
-            $item_stock_reduced = $item->get_meta('_reduced_stock', true);
-            $old_reduced = (int)$selLocQty + (int)$item_stock_reduced;
-            $locChanges[]    = "{ Stock levels increased from location: {$tlc}  from :  {$selLocQty} &rarr; {$old_reduced} }";
-            update_post_meta($product_id, "wcmlim_stock_at_{$tid}", $old_reduced);
-         $newselLocQty = get_post_meta($product_id, "wcmlim_stock_at_{$sltermid}", true);
+          $item_stock_reduced = $item->get_meta('_reduced_stock', true);
+          $old_reduced = (int)$selLocQty + (int)$item_stock_reduced;
+          $locChanges[]    = "{ Stock levels increased from location: {$tlc}  from :  {$selLocQty} &rarr; {$old_reduced} }";
+          update_post_meta($product_id, "wcmlim_stock_at_{$tid}", $old_reduced);
+          $newselLocQty = get_post_meta($product_id, "wcmlim_stock_at_{$sltermid}", true);
           $qty = apply_filters('woocommerce_order_item_quantity', $item->get_quantity(), $order, $item);
           $new_termidreduced = intval($newselLocQty) - intval($qty); 
           $locChanges2[]    = "{ Stock levels reduced from location: {$term_name}  from : {$newselLocQty}  &rarr; {$new_termidreduced} }";
@@ -174,11 +167,11 @@ class Wcmlim_Backend_Only_Mode
           $this->wcmlim_update_totaldata($product_id);
         }
 
-      }else{
-        wc_add_order_item_meta($item_id, '_selectedLocTermId', $sltermid);
-      }   
+      } else {
+        wc_add_order_item_meta($item_id, 'selectedLocTermId', $_lcti);
+      } 
 
-      $itemSelLocTermId = wc_get_order_item_meta( $v, '_selectedLocTermId');
+      $itemSelLocTermId = wc_get_order_item_meta( $item_id, 'selectedLocTermId');
       if(!in_array( $itemSelLocTermId, $item_storeid ) ) {
         $item_storeid[] = $itemSelLocTermId;
       }    
@@ -188,21 +181,21 @@ class Wcmlim_Backend_Only_Mode
     $dataLocate = array(); 
     foreach($item_storeid as $wcmlim_locid) {
       $term_object = get_term( $wcmlim_locid );
-      $dataLo = $term_object->term_id;										
+      $dataLo = $term_object->term_id;                    
       $dataLocate[] = $dataLo;
-    }									
+    }                 
     update_post_meta($order_id, "_multilocation", $dataLocate);
     update_post_meta($order_id, "_location", $term_name);
     if ($locChanges ||  $locChanges2 ) {
       $order->add_order_note(implode(', ', $locChanges));
-      //$order->add_order_note(implode(', ', $changes));
       $order->add_order_note(implode(', ', $locChanges2));
-      //$order->add_order_note(implode(', ', $changes2));
       
       do_action('woocommerce_restore_order_stock', $order);
     }
-    $order->save();
+     $order->save();
+    
   }
+
   public function wcmlim_update_totaldata($product_id)
   {
     $locations = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false));
@@ -250,11 +243,14 @@ class Wcmlim_Backend_Only_Mode
         if ($maxKey) {
           $maxStockAtLoc = get_post_meta($product_id, "wcmlim_stock_at_{$maxKey}", true);
         }
-        $termname = get_term($maxKey)->name;       
-        wc_add_order_item_meta($item_id, '_selectedLocTermId', $maxKey);              
-        wc_add_order_item_meta($item_id, 'Location', $termname);
-        wc_add_order_item_meta($item_id, '_selectedLocationKey', $getKey);
-        $lk = $getKey;
+        $termname = get_term($maxKey)->name; 
+        $set_location = wc_get_order_item_meta($item_id, 'Location', $termname);
+        if (  $set_location == '') {
+          wc_add_order_item_meta($item_id, 'selectedLocTermId', $maxKey);              
+          wc_add_order_item_meta($item_id, 'Location', $termname);
+          wc_add_order_item_meta($item_id, 'selectedLocationKey', $getKey);
+        }        
+       $lk = $getKey;
         $termname = get_term($maxKey)->name;          
         //updatecv
         update_post_meta($product_id, 'wcmlim_stock_at_' . $maxKey, $maxStockAtLoc - $item_quantity);  
@@ -302,10 +298,13 @@ class Wcmlim_Backend_Only_Mode
             $cvalterm = (int) $cvalterm;
             if ( $cvalterm > 0 ) {
               $termname = get_term($val)->name;
-              $getKey = $lker[$key];            
-              wc_add_order_item_meta($item_id, '_selectedLocTermId', $val);              
-              wc_add_order_item_meta($item_id, 'Location', $termname);
-              wc_add_order_item_meta($item_id, '_selectedLocationKey', $getKey);
+              $getKey = $lker[$key];   
+              $set_location = wc_get_order_item_meta($item_id, 'Location', $termname);
+              if (  $set_location == '') {
+                wc_add_order_item_meta($item_id, 'selectedLocTermId', $val);              
+                wc_add_order_item_meta($item_id, 'Location', $termname);
+                wc_add_order_item_meta($item_id, 'selectedLocationKey', $getKey);
+              }          
               $lk = $getKey;                
               $item_TermId = $val;
               $termname = get_term($item_TermId)->name;
@@ -375,6 +374,7 @@ class Wcmlim_Backend_Only_Mode
 
   public function add_orders_multi_inventory_ui( $item_id, $item, $order = NULL ) {
     $product_id          = $item->get_variation_id() ? $item->get_variation_id() : $item->get_product_id();
+    $postmeta_backorders_product = get_post_meta($product_id, '_backorders', true);
     $fulfilment_rule = get_option("wcmlim_order_fulfilment_rules");
     if($fulfilment_rule == "nearby_instock")
       {
@@ -386,8 +386,7 @@ class Wcmlim_Backend_Only_Mode
         $routeRules = "clcsadd";
       }
     $terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0)); 
-    $result = wc_get_order_item_meta($item_id, '_selectedLocTermId', true);
-    // var_dump($result);
+    $result = intval(wc_get_order_item_meta($item_id, 'selectedLocTermId', true));
     global $name, $cart_item, $cart_item_key ;
   
     $from_address = get_option('from_address');
@@ -405,9 +404,11 @@ class Wcmlim_Backend_Only_Mode
   
     if(!empty($result) || $result == 0) {
       $location_term_id = $result;
-    } else {
+    } 
+    else {
       $location_term_id = "";
     }
+ 
     ?>
     <tr class="order-item-wcml-panel" data-sort-ignore="true" data-order_item_id="<?php echo $item_id;?>">
       <td colspan="100">
@@ -415,17 +416,12 @@ class Wcmlim_Backend_Only_Mode
           <div class="form-group">
           <label for="_bom_location"><?php _e('Location:', 'wcmlim');?></label> 
                <select id="_bom_location_<?=$item_id?>" name="_bom_location_<?=$item_id?>" style="width:auto">  
-            <?php // if( $routeRules == "default") { ?>
               <option value=""><?php _e('Select location', 'wcmlim'); ?></option>
-            <?php //} ?>
             <?php             
               if ($routeRules == "maxinvloc" ) 
               {               
                 foreach ($terms as $k => $t) {
-                  $maxStockLoc[$t->term_id] = get_post_meta($product_id, 'wcmlim_stock_at_' . $t->term_id, true);
-                  /* if(!empty($location_term_id)){
-                    if($t->term_id == $location_term_id){ $lk = $k; }
-                  } */   
+                  $maxStockLoc[$t->term_id] = get_post_meta($product_id, 'wcmlim_stock_at_' . $t->term_id, true);  
                   $lker[$t->term_id] = $k;
                 }
                 $maxValue = max($maxStockLoc); // get max number
@@ -438,7 +434,7 @@ class Wcmlim_Backend_Only_Mode
                 $lk = $getKey; 
                 $lk2 = $maxKey;
                 ?>
-                <option class="maxinvloc" data-lc-key="<?php echo $getKey; ?>" value="<?php esc_html_e($maxKey); ?>" <?php echo ($location_term_id ==  $maxKey) ? ' selected="selected"' : '';?>><?php echo $termname .' - '.$maxStockAtLoc ;?></option>
+                <option class="maxinvloc" data-lc-key="<?php echo $getKey; ?>" value="<?php esc_html_e($maxKey); ?>" <?php echo ($location_term_id ==  $maxKey) ? ' selected="selected"' : '';?>><?php echo $termname ;?></option>
                 <?php  
               }
               else if ($routeRules == "locappriority") {
@@ -459,31 +455,64 @@ class Wcmlim_Backend_Only_Mode
                 foreach($priority as $key => $val ) {
                   $cvalterm = (int) get_post_meta($product_id, "wcmlim_stock_at_{$val}", true);
                   echo $cvalterm;
-                  if( $cvalterm > 0 && $cvalterm != null   ) {
+                  if( ($cvalterm > 0 && $cvalterm != null ) || $postmeta_backorders_product == 'yes' ) {
                     $termname = get_term($val)->name;
                     $getKey = $lker[$key];
                     ?>
                     <option class="priority" data-lc-key="<?php echo $key; ?>" value="<?php esc_html_e($val); ?>" <?php echo ($location_term_id ==  $val) ? ' selected="selected"' : '';?>><?php echo $termname .' - ('. $cvalterm . ')'; ?></option> 
                     <?php
-                   // wc_add_order_item_meta($item_id, '_selectedLocTermId', $val);              
-                  //  wc_add_order_item_meta($item_id, 'Location', $termname);
-                  //  wc_add_order_item_meta($item_id, '_selectedLocationKey', $getKey);
                     $lk = $getKey;
                     $lk2 = $val;
-
-                    //break;
                   }
                 }    
               }          
-            }
-              
-              else if ($routeRules == "nearby_instock" ) 
+            } else if ($routeRules == "nearby_instock" ) 
               {   
                 ?>
                 <option class="nearby_instock" data-lc-key="<?php echo $name; ?>" value="<?php echo $name;?>" <?php echo (strtoupper(trim($name)) == strtoupper(trim($name))) ? ' selected="selected"' : '';?>><?php echo $name ;?></option>
                <?php
+            }  else if ($routeRules == "shipping_loc" )  {
+              foreach ($order->get_shipping_methods() as $shipping_item_id => $shipping_item) {
+                $order_data = array(
+                  'id' => $shipping_item_id,
+                  'instance_id' =>  $shipping_item['instance_id'],
+                  'method_id' => $shipping_item['method_id'],
+                  'method_title' => $shipping_item['name'],
+                );
               }
-              else {
+              $rate_id = $order_data['method_id'] . ':' . $order_data['instance_id'];
+              // Get the zone name
+              $zone_id = $this->get_shipping_zone_from_method_rate_id($rate_id);
+              foreach ($terms as $id => $value) {
+                $wcmlim_shipping_zone = get_term_meta($value->term_id, 'wcmlim_shipping_zone', true);
+                $_stockat = get_post_meta( $product_id, "wcmlim_stock_at_{$value->term_id}", true);
+                $_stockat = intval($_stockat);
+                $zone_stockval = intval(wc_get_order_item_meta($item_id, "zone_stockval", true));
+                $zone_stockupdate = wc_get_order_item_meta($item_id, "zone_stockStatus", true);
+
+                if (in_array($zone_id, $wcmlim_shipping_zone)) {
+                  if($zone_stockval == 1) { 
+                   
+                    if ( $_stockat > 0 ) {                  
+                      ?>
+                      <option class="shippingzone if" data-lc-key="<?php echo $id; ?>" value="<?php echo $value->term_id;?>" <?php echo ($location_term_id ==  $value->term_id) ? ' selected="selected"' : '';?>><?php echo $value->name .' - ('. $_stockat . ')' ;?></option>
+                      <?php 
+                    } 
+                  } else {    
+                  
+                    if($zone_stockval != 1 && $zone_stockupdate == '') 
+                    {
+                        $locNameStock = '<span style="color:#FF0000;font-size 20px;">Location stock not available for this zone</span>';
+                        wc_add_order_item_meta($item_id, "zone_stockStatus", $locNameStock);
+                    }         
+                    $_stockat = isset($_stockat) ? $_stockat : 0;
+                    ?>
+                    <option class="shippingzone else" data-lc-key="<?php echo $id; ?>" value="<?php echo $value->term_id;?>" <?php echo ($location_term_id ==  $value->term_id) ? ' selected="selected"' : '';?>><?php echo $value->name .' - ('. $_stockat . ')' ;?></option>
+                    <?php 
+                  }
+                }
+              } 
+            } else {
                 $lk = array();
                 $lk2 = array();      
                 foreach ($terms as $id => $value) {
@@ -501,7 +530,7 @@ class Wcmlim_Backend_Only_Mode
                       ?>
                       <option class="default" data-lc-key="<?php echo $id; ?>" value="<?php echo $value->term_id;?>" <?php echo ($location_term_id ==  $value->term_id) ? ' selected="selected"' : '';?>><?php echo $value->name .' - ('. $_stockat . ')' ;?></option>
                       <?php 
-                    }
+                    } 
                   }
                 }
               } 
@@ -559,9 +588,38 @@ class Wcmlim_Backend_Only_Mode
   public function wcmlim_backend_mode_nearby_location_selection_shipping_address($posted_data)
   {
 
-    global $destination_prepare, $locations_data_lat_lng, $latlngarr, $shipping_latitude, $shipping_longitude, $distance;
+    global $destination_prepare, $locations_data_lat_lng, $latlngarr, $shipping_latitude, $shipping_longitude, $distance, $woocommerce, $combine_item_arr;
+
+    $items = $woocommerce->cart->get_cart();
+    foreach($items as $item => $values) { 
+      
+      $_product_cart_id =  $values['data']->get_id(); 
+      $_product_cart_quantity = $values['quantity'];
+      if(isset($combine_item_arr[$_product_cart_id]))
+      {
+        $combine_cart_old_qty = $combine_item_arr[$_product_cart_id];
+        $combine_cart_old_qty = intval($combine_cart_old_qty) + intval($_product_cart_quantity);
+
+        $combine_item_arr[$_product_cart_id] = $combine_cart_old_qty;
+      }
+      else
+      {
+        $combine_item_arr[$_product_cart_id] = $_product_cart_quantity;
+      }
+
+
+    } 
+    WC()->cart->empty_cart();
+    
+    foreach($combine_item_arr as $fetch_product_id => $fetch_product_value )
+    {
+      WC()->cart->add_to_cart($fetch_product_id, $fetch_product_value, '0', array());
+    }
+    $items = $woocommerce->cart->get_cart();
+
+
+       
     $coordinates_calculator      = get_option('wcmlim_distance_calculator_by_coordinates');
-   
     $addressone = $_POST['s_address'];
     $addresstwo = $_POST['s_address_2'];
     $city = $_POST['s_city'];
@@ -649,8 +707,6 @@ class Wcmlim_Backend_Only_Mode
       $loc_lat = get_term_meta( $term->term_id, 'wcmlim_lat', true );
 			$loc_lng = get_term_meta( $term->term_id, 'wcmlim_lng', true );
      
-      if(empty($loc_lat) || empty($loc_lng))
-		  {
         $termid = $term->term_id;
 			$streetNumber = get_term_meta($termid, 'wcmlim_street_number', true);
             $route = get_term_meta($termid, 'wcmlim_route', true);
@@ -701,13 +757,16 @@ class Wcmlim_Backend_Only_Mode
 
         $loc_lat = get_term_meta( $termid, 'wcmlim_lat', true );
         $loc_lng = get_term_meta( $termid, 'wcmlim_lng', true );
-      }
+      
 
       $wcmlim_available_loc_stock = 0;
 
 
     $wcmlim_available_loc_stock = 1;
 
+if(($postmeta_stock_at_term < 1) && ($postmeta_backorders_product == "yes"))
+{
+ 
     $match_dest[] = array(
       "locationname" => $term->name,
       "address" => $term_address,
@@ -717,8 +776,21 @@ class Wcmlim_Backend_Only_Mode
       "loc_lng" => $loc_lng
     );
     $dest[] = $term_address;
-
-    }
+  }
+  if($postmeta_stock_at_term > 0)
+{
+ 
+    $match_dest[] = array(
+      "locationname" => $term->name,
+      "address" => $term_address,
+      "termid" => $term->term_id,
+      "termkey" => $in,
+      "loc_lat" => $loc_lat,
+      "loc_lng" => $loc_lng
+    );
+    $dest[] = $term_address;
+  }
+}
    
      //max qty notice execution
   if(!empty($prepare_validation_msg))
@@ -740,20 +812,20 @@ class Wcmlim_Backend_Only_Mode
       else
       {
             $distance = $this->get_nearby_distance_by_api($dis_unit,$prepare_destination_address_string,$destination,$google_api_key);
+           
             if(is_array($distance))
             {
               usort($distance, function (array $a, array $b) {
                 $adistance = floatval($a['distance']);
                 $bdistance = floatval($b['distance']); 
-                if(floatval($adistance) == floatval($bdistance)){
-                  return 0;
-                }
-                return floatval($adistance) > floatval($bdistance) ? 1 : -1;
-              });
-           
+                return floatval($adistance) <=> floatval($bdistance);
+            });
+
               $this->wcmlim_nearby_stock_adjustment($product_id,$match_dest,$distance,$item_id);
             }
-      }
+
+           
+          }
           
     }
     else
@@ -787,7 +859,7 @@ class Wcmlim_Backend_Only_Mode
           usort($coordinates_prepare_result, function (array $a, array $b) {
             $adistance = floatval($a['distance']);
             $bdistance = floatval($b['distance']); 
-            return $adistance > $bdistance;
+            return $adistance <=> $bdistance;
         });
             $this->wcmlim_nearby_stock_adjustment($product_id,$match_dest,$coordinates_prepare_result,$item_id);
         
@@ -821,13 +893,10 @@ public function wcmlim_nearby_stock_adjustment($product_id,$match_dest,$distance
   $nearby_first__matching_termkey = $nearby_first_matching_array['termkey'];
   $nearby_first__matching_locationname = $nearby_first_matching_array['locationname'];
   $postmeta_stock_at_term = get_post_meta($product_id, 'wcmlim_stock_at_' . $nearby_first__matching_termid, true);
-  $cart_item_quantity = WC()->cart->cart_contents[$item_id]["quantity"];
+
   $postmeta_backorders_product = get_post_meta($product_id, '_backorders', true);
   if($postmeta_backorders_product == "yes")
     {
-      // WC()->cart->cart_contents[$item_id]['_selectedLocationKey'] = $nearby_first__matching_termkey;
-      // WC()->cart->cart_contents[$item_id]['Location'] = $nearby_first__matching_locationname;
-      // WC()->cart->cart_contents[$item_id]['_selectedLocTermId'] = $nearby_first__matching_termid;
 
       WC()->cart->cart_contents[$item_id]['select_location']['location_name'] = $nearby_first__matching_locationname;
       WC()->cart->cart_contents[$item_id]['select_location']['location_key'] = $nearby_first__matching_termkey;
@@ -838,10 +907,6 @@ public function wcmlim_nearby_stock_adjustment($product_id,$match_dest,$distance
   }
   else if(intval($cart_item_quantity) <= intval($postmeta_stock_at_term))
   {
-    // WC()->cart->cart_contents[$item_id]['_selectedLocationKey'] = $nearby_first__matching_termkey;
-    // WC()->cart->cart_contents[$item_id]['Location'] = $nearby_first__matching_locationname;
-    // WC()->cart->cart_contents[$item_id]['_selectedLocTermId'] = $nearby_first__matching_termid;
-
     WC()->cart->cart_contents[$item_id]['select_location']['location_name'] = $nearby_first__matching_locationname;
     WC()->cart->cart_contents[$item_id]['select_location']['location_key'] = $nearby_first__matching_termkey;
     WC()->cart->cart_contents[$item_id]['select_location']['location_termId'] = $nearby_first__matching_termid;
@@ -852,10 +917,6 @@ public function wcmlim_nearby_stock_adjustment($product_id,$match_dest,$distance
   {
       $updated_cart_item_quantity =  intval($cart_item_quantity) - intval($postmeta_stock_at_term);
       unset($fulfillment_stock_array[0]);
-      // WC()->cart->cart_contents[$item_id]['_selectedLocationKey'] = $nearby_first__matching_termkey;
-      // WC()->cart->cart_contents[$item_id]['Location'] = $nearby_first__matching_locationname;
-      // WC()->cart->cart_contents[$item_id]['_selectedLocTermId'] = $nearby_first__matching_termid;
-
       WC()->cart->cart_contents[$item_id]['select_location']['location_name'] = $nearby_first__matching_locationname;
       WC()->cart->cart_contents[$item_id]['select_location']['location_key'] = $nearby_first__matching_termkey;
       WC()->cart->cart_contents[$item_id]['select_location']['location_termId'] = $nearby_first__matching_termid;
@@ -871,6 +932,10 @@ public function wcmlim_nearby_stock_adjustment($product_id,$match_dest,$distance
 public function wcmlim_nearby_stock_adjustment_with_priority($product_id,$match_dest,$fulfillment_stock_array,$item_id,$updated_cart_item_quantity,$skip_term_id)
 {
   $prepare_priority_loc = array();
+  $new_match_dis = array();
+  print_r($match_dest);
+  exit();
+
   $locations = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
   foreach($locations as $key=>$term){
     if(!in_array($term->term_id, $skip_term_id))
@@ -885,6 +950,7 @@ public function wcmlim_nearby_stock_adjustment_with_priority($product_id,$match_
       );
     }
   }
+  array_filter($prepare_priority_loc);
   ksort($prepare_priority_loc);
   $carry_stock = 0;
   foreach($prepare_priority_loc as $priority_key=>$priority_value)
@@ -914,10 +980,10 @@ public function wcmlim_nearby_stock_adjustment_with_priority($product_id,$match_
         else
         {
           $carry_stock = intval($updated_cart_item_quantity) - intval($postmeta_stock_at_term);
-          WC()->cart->add_to_cart($product_id, $carry_stock, '0', array(), $get_location_data);
+          WC()->cart->add_to_cart($product_id, $postmeta_stock_at_term, '0', array(), $get_location_data);
           wc_clear_notices();
           $skip_term_id[] = $get_priority_term_id; 
-          $this->wcmlim_nearby_stock_adjustment_with_priority($product_id,$match_dest,$fulfillment_stock_array,$item_id,$updated_cart_item_quantity,$skip_term_id);
+          $this->wcmlim_nearby_stock_adjustment_with_priority($product_id,$match_dest,$fulfillment_stock_array,$item_id,$carry_stock,$skip_term_id);
         } 
   }       
 
@@ -1044,7 +1110,7 @@ public function get_nearby_distance_by_api($dis_unit,$prepare_destination_addres
         $total=0;
         foreach ($order->get_items() as $item) 
         {
-            $item_TermId = $item->get_meta('_selectedLocTermId', true);
+            $item_TermId = $item->get_meta('selectedLocTermId', true);
             if ( $item_TermId == $id ) {
                 $price = $item->get_subtotal();    
                 $total+= $price;
@@ -1076,7 +1142,7 @@ public function get_nearby_distance_by_api($dis_unit,$prepare_destination_addres
 
 										//message for product
 										foreach ($order->get_items() as $item) {
-											$item_TermId = $item->get_meta('_selectedLocTermId', true);
+											$item_TermId = $item->get_meta('selectedLocTermId', true);
 
 											if (!$item->is_type('line_item')) {
 												continue;
@@ -1135,16 +1201,14 @@ public function get_nearby_distance_by_api($dis_unit,$prepare_destination_addres
   //* Hide Order Item Meta
   public function wcmlim_hidden_order_itemmeta($args)
   {
-    $args[] = '_selectedLocationKey';
-    $args[] = '_selectedLocTermId';
+    $args[] = 'selectedLocationKey';
+    $args[] = 'selectedLocTermId';
     return $args;
   }
 
   //* Second Nearest Location if Nearest Location is Out Of Stock  
   public function getSecondNearestLocation($addresses, $dis_unit, $product_id)
   {
-
-    // $prodID = isset($_POST["variation_id"]) ? $_POST["variation_id"] : $_POST["product_id"];
     $ExcLoc = get_option("wcmlim_exclude_locations_from_frontend");
     if (!empty($ExcLoc)) {
       $terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0, 'exclude' => $ExcLoc));
@@ -1159,7 +1223,6 @@ public function get_nearby_distance_by_api($dis_unit,$prepare_destination_addres
     $smallest = array_shift($dnumber);
     $smallest_2nd = array_shift($dnumber);
     foreach ($addresses as $e => $v) {
-      # code...
       if ($smallest_2nd == $v["value"]) {
         $finalKeyOfLocation = $e;
       }
@@ -1190,8 +1253,6 @@ public function get_nearby_distance_by_api($dis_unit,$prepare_destination_addres
 
   public function wcmlim_fulfil_order_shipping_zones($order_id)
   {
-    // get order details data...
-
     $order =  wc_get_order($order_id);
 
     foreach ($order->get_shipping_methods() as $shipping_item_id => $shipping_item) {
@@ -1217,11 +1278,17 @@ public function get_nearby_distance_by_api($dis_unit,$prepare_destination_addres
           $product_id = $item->get_variation_id() ?: $item->get_product_id();
           $item_quantity = $item->get_quantity();
           $postmeta_stock_at_term = get_post_meta($product_id, 'wcmlim_stock_at_' . $term->term_id, true);
-          if (!empty($postmeta_stock_at_term) || ($postmeta_stock_at_term > 0)) {
+          $loc_item_meta = wc_get_order_item_meta($item_id, 'Location');         
+        
+          if ((!empty($postmeta_stock_at_term) || ($postmeta_stock_at_term > 0)) && $loc_item_meta == '') {
             wc_add_order_item_meta($item_id, "Location", $term->name);
-            wc_add_order_item_meta($item_id, "_selectedLocationKey", $in);
-            wc_add_order_item_meta($item_id, "_selectedLocTermId", $term->term_id);
-
+            wc_add_order_item_meta($item_id, "selectedLocationKey", $in);
+            wc_add_order_item_meta($item_id, "selectedLocTermId", $term->term_id);
+            /**Define and add new meta variable for zone */           
+            $locNameSTock = $term->name . ' ' . "Location Zone In-Stock";
+            
+            wc_add_order_item_meta($item_id, "zone_stockval", 1);
+            
             $parentTerms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => $term->term_id));
 
             if (!empty($parentTerms)) {
@@ -1260,7 +1327,7 @@ public function get_nearby_distance_by_api($dis_unit,$prepare_destination_addres
             // Email notified;
             $this->sendnotification_formanager($id, $order_id); 
 
-          }
+          } 
         }
       }
     }
@@ -1274,8 +1341,8 @@ public function get_nearby_distance_by_api($dis_unit,$prepare_destination_addres
       }
 
       wc_add_order_item_meta($item_id, "Location", $values["location_name"]);
-      wc_add_order_item_meta($item_id, "_selectedLocationKey", $values["location_key"]);
-      wc_add_order_item_meta($item_id, "_selectedLocTermId", $values["location_termId"]);
+      wc_add_order_item_meta($item_id, "selectedLocationKey", $values["location_key"]);
+      wc_add_order_item_meta($item_id, "selectedLocTermId", $values["location_termId"]);
       setcookie("wcmlim_selected_location", $values["location_key"], time() + 36000, '/');
     }
   }
@@ -1294,8 +1361,8 @@ public function get_nearby_distance_by_api($dis_unit,$prepare_destination_addres
           $location_key =  WC()->cart->cart_contents[$cart_item_id]['select_location']['location_key'];
           $location_id =  WC()->cart->cart_contents[$cart_item_id]['select_location']['location_termId'];
           wc_add_order_item_meta($item_id, "Location", $location_name);
-          wc_add_order_item_meta($item_id, "_selectedLocationKey", $location_key);
-          wc_add_order_item_meta($item_id, "_selectedLocTermId", $location_id);
+          wc_add_order_item_meta($item_id, "selectedLocationKey", $location_key);
+          wc_add_order_item_meta($item_id, "selectedLocTermId", $location_id);
         }
       }   
       

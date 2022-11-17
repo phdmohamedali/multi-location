@@ -125,7 +125,7 @@ class Wcmlim_Cron_Update
             $order_id  = $order->get_id();
             foreach ($order->get_items() as $item ) {
                 $itemid = $item->get_id();
-                $itemSelLocid = $item->get_meta('_selectedLocTermId', true);
+                $itemSelLocid = $item->get_meta('selectedLocTermId', true);
                 $itemSelLocName = $item->get_meta('Location', true);
                 $itemSelData = $order_id . " " . $itemSelLocid;
                 if(!in_array( $itemSelData, $locItemID ) ) {

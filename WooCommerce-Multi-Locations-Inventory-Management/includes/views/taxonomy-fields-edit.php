@@ -202,7 +202,7 @@
           <label class="" for="lcpriority"><?php esc_html_e('Location Priority', 'wcmlim'); ?></label>
         </th>
         <td>
-          <input class="form-control" id="lcpriority" name="wcmlim_location_priority" type="number" min="1" pattern="[0-9]{10}" value="<?php esc_attr_e($locPriority); ?>">
+          <input class="form-control noscroll" id="lcpriority" name="wcmlim_location_priority" type="number" min="1" pattern="[0-9]{10}" value="<?php esc_attr_e($locPriority); ?>">
         </td>
       </tr>
     <?php } }?>
@@ -435,6 +435,58 @@
         Lng - <input class="form-control w-15" id="wcmlim_lng" name="wcmlim_lng" type="text" value="<?php esc_attr_e($wcmlim_lng); ?>">
       </td>
     </tr>
+    <?php
+        if (in_array('stockupp-pos/stockupp-pos.php', apply_filters('active_plugins', get_option('active_plugins'))))
+       {
+         ?>
+           <tr class="form-field term-outlet-mapping-wrap">
+            <th scope="row" valign="top">
+                <label class="" for="stockuppposoutlets"><?php esc_html_e('StockUpp POS Outlet', 'wcmlim'); ?></label>
+              </th>
+              <td>
+              <select name="wcmlim_stockupp_pos" id="wcmlim_stockupp_pos">
+              <option value="">Select StockUpp POS Outlet</option>
+            <?php
+            $wcmlim_stockupp_pos = get_term_meta($term->term_id, 'wcmlim_stockupp_pos', true);
+            $stockupp_outlets = get_terms(array('taxonomy' => 'pos_outlets', 'hide_empty' => false, 'parent' => 0));
+            foreach ($stockupp_outlets as $k => $stockupp_pos_outlets) {
+              $stockupp_pos_id = $stockupp_pos_outlets->term_id;
+              $all_terms_locations = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
+            $stockupp_pos_outlet_mapped = 0;
+              foreach($all_terms_locations as $loc_edit_screen_key=>$loc_edit_screen_term){
+              $location_terms_id = $loc_edit_screen_term->term_id;
+            $row_wcmlim_stockupp_pos = get_term_meta($location_terms_id, 'wcmlim_stockupp_pos', true);
+
+              if(($row_wcmlim_stockupp_pos == $stockupp_pos_id)){
+                $stockupp_pos_outlet_mapped = 1;
+              }
+              if(!empty($wcmlim_stockupp_pos))
+              {
+                $stockupp_pos_outlet_mapped = 0;
+              }
+            }
+if($stockupp_pos_outlet_mapped != 1)
+{
+  ?>
+  <option value="<?php echo $stockupp_pos_outlets->term_id; ?>" <?php if (!empty($wcmlim_stockupp_pos)) {
+                                                if ($stockupp_pos_outlets->term_id==$wcmlim_stockupp_pos) {
+                                                  echo "selected='selected'";
+                                                }
+                                              }
+                                              ?>><?php echo $stockupp_pos_outlets->name; ?></option>
+<?php
+}
+            
+            }
+
+            ?>
+
+          </select>
+              </td>
+            </tr>
+         <?php
+         }
+         ?>
 
     <?php
     

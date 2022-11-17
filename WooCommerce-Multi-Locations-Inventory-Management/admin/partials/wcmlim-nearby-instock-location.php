@@ -49,7 +49,6 @@ class Wcmlim_Nearby_Instock_Location
    
    public function getSecondNearestLocation($addresses, $dis_unit, $product_id)
    {
-  // $prodID = isset($_POST["variation_id"]) ? $_POST["variation_id"] : $_POST["product_id"];
      $ExcLoc = get_option("wcmlim_exclude_locations_from_frontend");
      if (!empty($ExcLoc)) {
        $terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0, 'exclude' => $ExcLoc));
@@ -63,7 +62,7 @@ class Wcmlim_Nearby_Instock_Location
      $smallest = array_shift($dnumber);
      $smallest_2nd = array_shift($dnumber);
      foreach ($addresses as $e => $v) {
-       # code...
+
        if ($smallest_2nd == $v["value"]) {
          $finalKeyOfLocation = $e;
        }
@@ -139,7 +138,6 @@ class Wcmlim_Nearby_Instock_Location
 			$terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
 		}
 		foreach ($terms as $key => $value) {
-			# code...
 			if($distanceKey == $key){
 				$_locRadius = 	get_term_meta( $value->term_id, 'wcmlim_service_radius_for_location', true );
 			}

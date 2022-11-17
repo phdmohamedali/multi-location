@@ -49,8 +49,14 @@ For documentation visit our [Website](https://techspawn.com/docs/woocommerce-mul
 
 == Frequently Asked Questions ==
 
-
 == Screenshots ==
+== Changelog ==
+= Version 3.2.6 =
+Fix: Location is not selected in location dropdown view for variable product
+Fix: UI issue
+Add: Code for set selected location from location switcher on location list view for variable product
+Fix: Hide location to Guest User to choose
+
 
 == Changelog ==
 = Version 3.2.5 = 

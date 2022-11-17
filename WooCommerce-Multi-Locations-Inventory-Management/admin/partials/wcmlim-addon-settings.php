@@ -30,15 +30,7 @@
     <div class="tab-content">
         <div id="tab-1" class="tab-pane active">
             <div class="wcmlim_flex_container">
-                <!-- <div class="wcmlim_flex_box">
-                    <form action="options.php" method="post">
-                        <?php
-                        settings_fields('wcmlim_display_settings');
-                        do_settings_sections('wcmlim_display_settings');
-                        submit_button();
-                        ?>
-                    </form>
-                </div> -->
+
                 <!-- Addon Plugins @since 1.1.5 -->
                 <div class="wcmlim_flex_box">
                     
@@ -178,13 +170,13 @@
                                       <!---addon product each starts here-->
                                     <div class="wcmlim-addon-column" >
                                         <div class="wcmlim-addon-column-container">
-                                            <h3 class="wcmlim_price">$99.00</h3>
+                                            <h3 class="wcmlim_price" style="    font-size: 18px;">Free For Multilocation Customer</h3>
                                         <img src="https://store.techspawn.com/wp-content/uploads/2022/09/STOCKUPP-POINT-of-SALE_590x317_02.jpg" class="attachment-shop_catalog size-shop_catalog wp-post-image" alt="" loading="lazy">
                                             <div class="wcmlim-addon-column-div">
                                             <a class="para_descrip" href="https://store.techspawn.com/product/stockupp-pos/" target="_blank" ><h2>StockUpp POS For WooCommerce</h2></a>
                                             </div>
                                             <p>
-                                            StockUpp – POS is a simple interface for taking orders at the Point of Sale using your.<span id="dots">...</span></p>
+       Download free copy of POS plugin by using Multilocation purchase code on checkout.<span id="dots">...</span></p>
                                             <a class="button" href="https://store.techspawn.com/product/stockupp-pos/" target="_blank"> Buy Now </a>
                                         </div>                                     
                                     </div>

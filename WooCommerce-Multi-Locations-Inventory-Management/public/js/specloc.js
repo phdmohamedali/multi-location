@@ -1,44 +1,32 @@
-( function ( $ )
-{
-    $( document ).ready( function ()
-    {
-        const elementBody = jQuery( 'body' );
-        if ( typeof multi_inventory !== 'undefined' )
-        {
-            const userStatus = multi_inventory.isUserLoggedIn;
-            const loginUrl = multi_inventory.loginURL;
-            const isAdmin = multi_inventory.isUserAdmin;
-            const myStorage = window.sessionStorage;
-            const selKey = multi_inventory.resUserSLK;
-
-            if ( !userStatus && !elementBody.hasClass( "login-action-login" ) )
-            {
-                const conTent = `<div id="restrict_user_not_logged_in" style="display:none;"><div class="notice notice-warning"><p>You must be logged in to purchase this product.<a class="button" href="${ loginUrl }" title="Login">Login</a></p></div></div>`;
-                myStorage.setItem( 'rsnlc', conTent );
-            } else
-            {
-                if ( isAdmin )
-                {
-                    myStorage.setItem( 'rsula', '<div id="restrict_user_logged_in_as_admin" style="display:none;"></div>' );
+!(function (e) {
+    e(document).ready(function () {
+        let e = jQuery("body");
+        if ("undefined" != typeof multi_inventory) {
+            let i = multi_inventory.isUserLoggedIn,
+                t = multi_inventory.loginURL,
+                s = multi_inventory.isUserAdmin,
+                n = window.sessionStorage,
+                o = multi_inventory.resUserSLK;
+            if (i || e.hasClass("login-action-login")) {
+                if (s) {
+                    n.setItem("rsula", '<div id="restrict_user_logged_in_as_admin" style="display:none;"></div>');
                     return;
                 }
-                setcookie( "wcmlim_selected_location", selKey );
+                !(function e(i, t, s) {
+                    let n = new Date();
+                    if (s) {
+                        n.setTime(n.getTime() + 864e5 * s);
+                        var o = `; expires=${n.toUTCString()}`;
+                    } else {
+                        n.setTime(n.getTime() + 864e5);
+                        var o = `; expires=${n.toUTCString()}`;
+                    }
+                    document.cookie = `${i}=${t}${o};path=/`;
+                })("wcmlim_selected_location", o);
+            } else {
+                let r = `<div id="restrict_user_not_logged_in" style="display:none;"><div class="notice notice-warning"><p>You must be logged in to purchase this product.<a class="button" href="${t}" title="Login">Login</a></p></div></div>`;
+                n.setItem("rsnlc", r);
             }
         }
-       
-        function setcookie ( name, value, days )
-        {
-            let date = new Date();
-            if ( days )
-            {     
-            date.setTime( date.getTime() + days * 24 * 60 * 60 * 1000 ); 
-            var expires = `; expires=${ date.toUTCString() }`;      
-            } else {           
-            date.setTime( date.getTime() + 1 * 24 * 60 * 60 * 1000 ); 
-            var expires = `; expires=${ date.toUTCString() }`;
-            }   
-            document.cookie = `${ name }=${ value }${ expires };path=/`;     
-        }
-    } );
-
-} )( jQuery );
+    });
+})(jQuery);

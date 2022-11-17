@@ -198,7 +198,6 @@
                                     </p>
                                     <div class="postcode-checker-div postcode-checker-div-show">
                                         <input type="text" placeholder="Enter Location" required="" class="class_post_code" name="class_post_code" value="" id="class_post_code">
-                                        <!-- <input type="button" class="button" id="submit_postcode_product" value="&#xf00d; "> -->
                                         <button class="button submit_postcode" id="submit_postcode_product" style="line-height: 1.4;border: 0;">
                                             <i class="fa fa-map-marker-alt" aria-hidden="true"></i>
                                             <?php echo $oncheck_btntxt; ?>

@@ -50,7 +50,6 @@ class Wcmlim_Display_Shipping_zone
 				foreach($location_items_map as $key => $location_items) {
                     $term_name = get_term( $key )->name;
 					$packages[] = array(
-                        //'ship_via' => array( 'flat_rate' ),
                         'shipping_name' => $term_name,
                         'shipping_term_id' => $key,
 						'contents' => $location_items,
@@ -174,12 +173,6 @@ class Wcmlim_Display_Shipping_zone
                         $shipping_zone = wc_get_shipping_zone(reset($shipping_packages));
                         $zone_id   = $shipping_zone->get_id();
 
-                        if (is_array($wcmlim_shipping_zone)) {
-                            // if (in_array($zone_id, $wcmlim_shipping_zone)) {
-                            //     $found = 'yes';
-                            //     break;
-                            // }
-                        }
                     }
                 }
             }

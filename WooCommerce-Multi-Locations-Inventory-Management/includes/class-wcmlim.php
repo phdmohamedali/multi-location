@@ -239,6 +239,10 @@ class Wcmlim
 
     // *Filtering orders by assigned location to location shop manager
     $this->loader->add_filter('pre_get_posts', $plugin_admin, 'wcmlim_filter_orders_by_location');
+    $isShopManagerEnable = get_option('wcmlim_assign_location_shop_manager');
+    if($isShopManagerEnable == "on") {
+      $this->loader->add_filter( 'woocommerce_admin_html_order_item_class', $plugin_admin, 'wcmlim_woocommerce_admin_html_order_item_class_filter', 10, 3 );
+    }
 
     // * update stock and price inline ajax callback
     $this->loader->add_action('wp_ajax_update_stock_inline', $plugin_admin, 'wcmlim_update_stock_inline');

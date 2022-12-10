@@ -20,8 +20,12 @@ class Wcmlim_Backend_Only_Mode
   public function __construct()
   {
     //enqueue js scripts hook while backend only mode is enabled 
-    add_action('wp_enqueue_scripts', array($this, 'wcmlim_show_address_checkout'));
-    //enqueue js scripts hook while backend only mode is enabled 
+    $wcmlim_allow_only_backend   = get_option('wcmlim_allow_only_backend');
+    if($wcmlim_allow_only_backend == 'on'){
+
+      add_action('wp_enqueue_scripts', array($this, 'wcmlim_show_address_checkout'));
+      //enqueue js scripts hook while backend only mode is enabled 
+    }
 
     $wcmlim_order_fulfil_edit = get_option('wcmlim_order_fulfil_edit');
     $fulfilment_rule = get_option("wcmlim_order_fulfilment_rules");
@@ -38,9 +42,7 @@ class Wcmlim_Backend_Only_Mode
       add_action( 'woocommerce_process_shop_order_meta', [$plugin_public,'wcmlim_maybe_reduce_stock_levels'], 10, 2 );
 
     }
-      if ($fulfilment_rule == "clcsadd") {
-       
-        
+      if ($fulfilment_rule == "clcsadd") {        
         add_action('woocommerce_checkout_update_order_review', [$this, 'wcmlim_backend_mode_nearby_location_selection_shipping_address']);
        
         add_filter( 'woocommerce_cart_item_name', [$this, 'wcmlim_cart_item_name'], 10, 3 );
@@ -48,6 +50,7 @@ class Wcmlim_Backend_Only_Mode
         add_action('woocommerce_add_order_item_meta',  array($this, 'add_order_item_meta'),  10, 3);
       } elseif ($fulfilment_rule == "shipping_loc") {
         add_action('woocommerce_thankyou',  array($this, 'wcmlim_fulfil_order_shipping_zones'),  10, 1);
+        add_action('woocommerce_after_checkout_validation', array($this, 'wcmlim_shipping_error'),  10, 2);
       } elseif ( $fulfilment_rule == "maxinvloc" || $fulfilment_rule == "locappriority" || $fulfilment_rule == "nearby_instock" ) {
         add_action('woocommerce_thankyou',  array($this, 'wcmlim_fulfil_saved_order_items'),  10, 4);
       } 
@@ -112,9 +115,7 @@ class Wcmlim_Backend_Only_Mode
     } 
     $order        = wc_get_order( $order_id );
     $item_storeid = array(); 
-    // Get Order Status
     $orderstatus   = $order->get_status();
-    // Loop through order items
     foreach ( $order->get_items() as $item_id => $item ) {     
       $v = $item_id;   
 
@@ -218,7 +219,6 @@ class Wcmlim_Backend_Only_Mode
    */
   public function wcmlim_fulfil_saved_order_items($order_id)
   {
-    // get order details data...
     $order =  wc_get_order($order_id);
     $terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0)); 
     foreach ($order->get_items() as $item_id => $item) { 
@@ -252,14 +252,13 @@ class Wcmlim_Backend_Only_Mode
         }        
        $lk = $getKey;
         $termname = get_term($maxKey)->name;          
-        //updatecv
+       
         update_post_meta($product_id, 'wcmlim_stock_at_' . $maxKey, $maxStockAtLoc - $item_quantity);  
         $stock_reduce_location = $maxStockAtLoc - $item_quantity;
         $note = "{ Max level -> Stock levels reduced: {$item->get_name()}  from Location: {$termname} {$maxStockAtLoc} &rarr; {$stock_reduce_location} }";
   
-        // Add the note
         $order->add_order_note($note);
-        //For-Manager Records 
+   
         $id = $maxKey;
         $item_storeid = array();
         if(!in_array( $id, $item_storeid ) ) {
@@ -274,7 +273,6 @@ class Wcmlim_Backend_Only_Mode
         update_post_meta($order_id, "_multilocation", $dataLocate);
         update_post_meta($order_id, "_location", $termname);
        
-        // Email notified;
         $this->sendnotification_formanager($id, $order_id);
       } 
       else if ($routeRules == "locappriority") {
@@ -309,15 +307,12 @@ class Wcmlim_Backend_Only_Mode
               $item_TermId = $val;
               $termname = get_term($item_TermId)->name;
               $postmeta_stock_at_term = $cvalterm;
-              //update
               update_post_meta($product_id, 'wcmlim_stock_at_' . $item_TermId, $postmeta_stock_at_term - $item_quantity);
         
               $stock_reduce_location = $postmeta_stock_at_term - $item_quantity;
               $note = "{ Priority wise location Stock levels reduced: {$item->get_name()}  from Location: {$termname} {$postmeta_stock_at_term} &rarr; {$stock_reduce_location} }";
         
-              // Add the note
               $order->add_order_note($note);
-              //For-Manager Records 
               $id = $item_TermId;
               $item_storeid = array();
               if(!in_array( $id, $item_storeid ) ) {
@@ -332,7 +327,6 @@ class Wcmlim_Backend_Only_Mode
               update_post_meta($order_id, "_multilocation", $dataLocate);     
               update_post_meta($order_id, "_location", $termname);
 
-              // Email notified;
               $this->sendnotification_formanager($id, $order_id); 
               break;
             }
@@ -412,7 +406,7 @@ class Wcmlim_Backend_Only_Mode
     ?>
     <tr class="order-item-wcml-panel" data-sort-ignore="true" data-order_item_id="<?php echo $item_id;?>">
       <td colspan="100">
-        <div class="order-item-wcml-wrapper">
+      <div class="order-item-wcml-wrapper">
           <div class="form-group">
           <label for="_bom_location"><?php _e('Location:', 'wcmlim');?></label> 
                <select id="_bom_location_<?=$item_id?>" name="_bom_location_<?=$item_id?>" style="width:auto">  
@@ -421,7 +415,7 @@ class Wcmlim_Backend_Only_Mode
               if ($routeRules == "maxinvloc" ) 
               {               
                 foreach ($terms as $k => $t) {
-                  $maxStockLoc[$t->term_id] = get_post_meta($product_id, 'wcmlim_stock_at_' . $t->term_id, true);  
+                  $maxStockLoc[$t->term_id] = get_post_meta($product_id, 'wcmlim_stock_at_' . $t->term_id, true);
                   $lker[$t->term_id] = $k;
                 }
                 $maxValue = max($maxStockLoc); // get max number
@@ -434,7 +428,7 @@ class Wcmlim_Backend_Only_Mode
                 $lk = $getKey; 
                 $lk2 = $maxKey;
                 ?>
-                <option class="maxinvloc" data-lc-key="<?php echo $getKey; ?>" value="<?php esc_html_e($maxKey); ?>" <?php echo ($location_term_id ==  $maxKey) ? ' selected="selected"' : '';?>><?php echo $termname ;?></option>
+                <option class="maxinvloc" data-lc-key="<?php echo $getKey; ?>" value="<?php esc_html_e($maxKey); ?>" <?php echo ($location_term_id ==  $maxKey) ? ' selected="selected"' : '';?>><?php echo $termname .' - '.$maxStockAtLoc ;?></option>
                 <?php  
               }
               else if ($routeRules == "locappriority") {
@@ -455,7 +449,7 @@ class Wcmlim_Backend_Only_Mode
                 foreach($priority as $key => $val ) {
                   $cvalterm = (int) get_post_meta($product_id, "wcmlim_stock_at_{$val}", true);
                   echo $cvalterm;
-                  if( ($cvalterm > 0 && $cvalterm != null ) || $postmeta_backorders_product == 'yes' ) {
+                  if( $cvalterm > 0 && $cvalterm != null   ) {
                     $termname = get_term($val)->name;
                     $getKey = $lker[$key];
                     ?>
@@ -463,56 +457,19 @@ class Wcmlim_Backend_Only_Mode
                     <?php
                     $lk = $getKey;
                     $lk2 = $val;
+
                   }
                 }    
               }          
-            } else if ($routeRules == "nearby_instock" ) 
+            }
+              
+              else if ($routeRules == "nearby_instock" ) 
               {   
                 ?>
                 <option class="nearby_instock" data-lc-key="<?php echo $name; ?>" value="<?php echo $name;?>" <?php echo (strtoupper(trim($name)) == strtoupper(trim($name))) ? ' selected="selected"' : '';?>><?php echo $name ;?></option>
                <?php
-            }  else if ($routeRules == "shipping_loc" )  {
-              foreach ($order->get_shipping_methods() as $shipping_item_id => $shipping_item) {
-                $order_data = array(
-                  'id' => $shipping_item_id,
-                  'instance_id' =>  $shipping_item['instance_id'],
-                  'method_id' => $shipping_item['method_id'],
-                  'method_title' => $shipping_item['name'],
-                );
               }
-              $rate_id = $order_data['method_id'] . ':' . $order_data['instance_id'];
-              // Get the zone name
-              $zone_id = $this->get_shipping_zone_from_method_rate_id($rate_id);
-              foreach ($terms as $id => $value) {
-                $wcmlim_shipping_zone = get_term_meta($value->term_id, 'wcmlim_shipping_zone', true);
-                $_stockat = get_post_meta( $product_id, "wcmlim_stock_at_{$value->term_id}", true);
-                $_stockat = intval($_stockat);
-                $zone_stockval = intval(wc_get_order_item_meta($item_id, "zone_stockval", true));
-                $zone_stockupdate = wc_get_order_item_meta($item_id, "zone_stockStatus", true);
-
-                if (in_array($zone_id, $wcmlim_shipping_zone)) {
-                  if($zone_stockval == 1) { 
-                   
-                    if ( $_stockat > 0 ) {                  
-                      ?>
-                      <option class="shippingzone if" data-lc-key="<?php echo $id; ?>" value="<?php echo $value->term_id;?>" <?php echo ($location_term_id ==  $value->term_id) ? ' selected="selected"' : '';?>><?php echo $value->name .' - ('. $_stockat . ')' ;?></option>
-                      <?php 
-                    } 
-                  } else {    
-                  
-                    if($zone_stockval != 1 && $zone_stockupdate == '') 
-                    {
-                        $locNameStock = '<span style="color:#FF0000;font-size 20px;">Location stock not available for this zone</span>';
-                        wc_add_order_item_meta($item_id, "zone_stockStatus", $locNameStock);
-                    }         
-                    $_stockat = isset($_stockat) ? $_stockat : 0;
-                    ?>
-                    <option class="shippingzone else" data-lc-key="<?php echo $id; ?>" value="<?php echo $value->term_id;?>" <?php echo ($location_term_id ==  $value->term_id) ? ' selected="selected"' : '';?>><?php echo $value->name .' - ('. $_stockat . ')' ;?></option>
-                    <?php 
-                  }
-                }
-              } 
-            } else {
+              else {
                 $lk = array();
                 $lk2 = array();      
                 foreach ($terms as $id => $value) {
@@ -530,7 +487,7 @@ class Wcmlim_Backend_Only_Mode
                       ?>
                       <option class="default" data-lc-key="<?php echo $id; ?>" value="<?php echo $value->term_id;?>" <?php echo ($location_term_id ==  $value->term_id) ? ' selected="selected"' : '';?>><?php echo $value->name .' - ('. $_stockat . ')' ;?></option>
                       <?php 
-                    } 
+                    }
                   }
                 }
               } 
@@ -559,7 +516,8 @@ class Wcmlim_Backend_Only_Mode
               } );
               </script>
           </div>
-        </div>      
+        </div>   
+   
       </td>
     </tr>
   <?php	
@@ -1250,6 +1208,42 @@ public function get_nearby_distance_by_api($dis_unit,$prepare_destination_addres
     $secNearStore[] = $secondNearLocKey;
     return $secNearStore;
   }
+ 
+  public function wcmlim_shipping_error( $fields, $errors )
+  {
+    global $woocommerce;
+    $cart = $woocommerce->cart->cart_contents;
+    $shipping_packages =  WC()->cart->get_shipping_packages();
+    $shipping_zone = wc_get_shipping_zone( reset( $shipping_packages ) );
+    $zone_id   = $shipping_zone->get_id(); 
+    $zone_name = $shipping_zone->get_zone_name(); 
+   
+    $isShippingMethods = get_option('wcmlim_enable_shipping_methods');
+    if ($isShippingMethods == "on") 
+    {
+      foreach ($cart as $array_item) {
+        $terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false));
+        $product = wc_get_product( $array_item['product_id'] );
+        $product_name = $product->get_title();
+        $product_id = $array_item['product_id'];
+        $zone_found =  0;
+        if ( $product->is_type( 'variable' ) ) {
+          $product_id = $array_item['variation_id'];
+        }
+        foreach ($terms as $term) {
+          $wcmlim_shipping_zone = get_term_meta($term->term_id, 'wcmlim_shipping_zone', true);
+          $stock_at_loc = get_post_meta($product_id, "wcmlim_stock_at_{$term->term_id}", true);
+          if(in_array($zone_id,$wcmlim_shipping_zone) && ($stock_at_loc > 0 || $stock_at_loc != '')){
+            $zone_found = $zone_found +1;
+          }    
+        }
+        if ($zone_found == 0) {
+          wc_clear_notices();
+          $errors->add( 'validation', 'Cart item <b> '.$product_name.' </b> could not be delivered in shipping zone' );
+        }
+      }
+    }
+  }
 
   public function wcmlim_fulfil_order_shipping_zones($order_id)
   {
@@ -1270,10 +1264,11 @@ public function get_nearby_distance_by_api($dis_unit,$prepare_destination_addres
 
     $terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false));
     foreach ($terms as $term) {
+
       $wcmlim_shipping_zone = get_term_meta($term->term_id, 'wcmlim_shipping_zone', true);
+      // start cond
 
       if (in_array($zone_id, $wcmlim_shipping_zone)) {
-
         foreach ($order->get_items() as $item_id => $item) {
           $product_id = $item->get_variation_id() ?: $item->get_product_id();
           $item_quantity = $item->get_quantity();
@@ -1284,13 +1279,7 @@ public function get_nearby_distance_by_api($dis_unit,$prepare_destination_addres
             wc_add_order_item_meta($item_id, "Location", $term->name);
             wc_add_order_item_meta($item_id, "selectedLocationKey", $in);
             wc_add_order_item_meta($item_id, "selectedLocTermId", $term->term_id);
-            /**Define and add new meta variable for zone */           
-            $locNameSTock = $term->name . ' ' . "Location Zone In-Stock";
-            
-            wc_add_order_item_meta($item_id, "zone_stockval", 1);
-            
             $parentTerms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => $term->term_id));
-
             if (!empty($parentTerms)) {
               foreach ($parentTerms as $parentTerm) {
                 $stockInParentLocation[$parentTerm->term_id] = get_post_meta($product_id, "wcmlim_stock_at_{$parentTerm->term_id}", true);
@@ -1302,9 +1291,7 @@ public function get_nearby_distance_by_api($dis_unit,$prepare_destination_addres
                 update_post_meta($product_id,  "wcmlim_stock_at_{$parentKey}", $maxStockAtSub - $item_quantity);
               }
             }
-
             update_post_meta($product_id, 'wcmlim_stock_at_' . $term->term_id, $postmeta_stock_at_term - $item_quantity);
-
             $stock_reduce_location = $postmeta_stock_at_term - $item_quantity;
             $note = "{ Stock levels reduced: {$item->get_name()}  from Location: {$term->name} {$postmeta_stock_at_term} &rarr; {$stock_reduce_location} }";
 
@@ -1330,6 +1317,8 @@ public function get_nearby_distance_by_api($dis_unit,$prepare_destination_addres
           } 
         }
       }
+// end condition
+
     }
   }
   public function add_order_item_meta($item_id, $cart_item, $cart_item_key)

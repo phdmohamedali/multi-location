@@ -11,15 +11,15 @@ jQuery( document ).ready( ( $ ) =>
    if(current_regular_price == '' && current_sales_price != '')
    {
      $("#wcmlim_product_"+proid+"_sale_price_at_"+locid).val('');
-     alertify.set("notifier", "position", "bottom");
-     alertify.error("please enter price less than regular price");
+     $( document.body ).triggerHandler( 'wc_add_error_tip', [ $(this), 'i18n_sale_less_than_regular_error' ] );
+
    }
 else
  if(parseFloat(current_sales_price) > parseFloat(current_regular_price) && (current_regular_price != ''))
 {
  $("#wcmlim_product_"+proid+"_sale_price_at_"+locid).val('');
- alertify.set("notifier", "position", "bottom");
- alertify.error("please enter price less than regular price");
+ $( document.body ).triggerHandler( 'wc_add_error_tip', [ $(this), 'i18n_sale_less_than_regular_error' ] );
+
 }
 });
 
@@ -33,17 +33,17 @@ jQuery( ".wcmlim_product_sale_price" ).change( function (){
 
    if(current_regular_price == '' && current_sales_price != '')
    {
-     $("#wcmlim_product_"+proid+"_sale_price_at_"+locid).val('');
-     alertify.set("notifier", "position", "bottom");
-     alertify.error("please enter price less than regular price");
+     $("#wcmlim_product_"+proid+"_sale_price_at_"+locid).val('');				
+     $( document.body ).triggerHandler( 'wc_add_error_tip', [ $(this), 'i18n_sale_less_than_regular_error' ] );
+
    }
 else
    if(parseFloat(current_sales_price) > parseFloat(current_regular_price) && (current_regular_price != ''))
 {
  
- $("#wcmlim_product_"+proid+"_sale_price_at_"+locid).val('');
- alertify.set("notifier", "position", "bottom");
- alertify.error("please enter price less than regular price");
+ $("#wcmlim_product_"+proid+"_sale_price_at_"+locid).val('');				
+ $( document.body ).triggerHandler( 'wc_add_error_tip', [ $(this), 'i18n_sale_less_than_regular_error' ] );
+
 }
 });
 
@@ -51,7 +51,7 @@ else
 // For variable product
 
 
-$(document).on("change", '.wcmlim_variable_product_regular_price', function() { 
+$(document).on("keyup", '.wcmlim_variable_product_regular_price', function() { 
 
    let locid = $(this).attr('loc-id');
    let proid = $(this).attr('pro-id');
@@ -61,20 +61,18 @@ $(document).on("change", '.wcmlim_variable_product_regular_price', function() {
    {
     
      $("#wcmlim_variation_"+proid+"_sale_price_at_"+locid).val('');
-     alertify.set("notifier", "position", "bottom");
-     alertify.error("please enter price less than regular price");
+   $( document.body ).triggerHandler( 'wc_add_error_tip', [ $(this), 'i18n_sale_less_than_regular_error' ] );
    }
 else
  if(parseFloat(current_sales_price) > parseFloat(current_regular_price) && (current_regular_price != ''))
 {
  $("#wcmlim_variation_"+proid+"_sale_price_at_"+locid).val('');
- alertify.set("notifier", "position", "bottom");
- alertify.error("please enter price less than regular price");
+ $( document.body ).triggerHandler( 'wc_add_error_tip', [ $(this), 'i18n_sale_less_than_regular_error' ] );
 }
 });
 
 
-$(document).on("change", '.wcmlim_variable_product_sale_price', function() { 
+$(document).on("keyup", '.wcmlim_variable_product_sale_price', function() { 
    let locid = $(this).attr('loc-id');
    let proid = $(this).attr('pro-id');
    let current_sales_price = $("#wcmlim_variation_"+proid+"_sale_price_at_"+locid).val();
@@ -83,15 +81,13 @@ $(document).on("change", '.wcmlim_variable_product_sale_price', function() {
    if(current_regular_price == '' && current_sales_price != '')
    {
      $("#wcmlim_variation_"+proid+"_sale_price_at_"+locid).val('');
-     alertify.set("notifier", "position", "bottom");
-     alertify.error("please enter price less than regular price");
+     $( document.body ).triggerHandler( 'wc_add_error_tip', [ $(this), 'i18n_sale_less_than_regular_error' ] );
    }
 else
    if(parseFloat(current_sales_price) > parseFloat(current_regular_price) && (current_regular_price != ''))
 {
  $("#wcmlim_variation_"+proid+"_sale_price_at_"+locid).val('');
- alertify.set("notifier", "position", "bottom");
- alertify.error("please enter price less than regular price");
+ $( document.body ).triggerHandler( 'wc_add_error_tip', [ $(this), 'i18n_sale_less_than_regular_error' ] );
 }
 });
 

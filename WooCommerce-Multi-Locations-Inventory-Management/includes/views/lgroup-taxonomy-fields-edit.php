@@ -1,5 +1,14 @@
 <table class="form-table" role="presentation">
   <tbody>
+    <?php $wcmlim_email_regmanager = get_term_meta( $term->term_id, 'wcmlim_email_regmanager', true ); ?> 
+  <tr class="form-field term-c-wrap">
+      <th>
+        <label class="" for="wcmlim_email_regmanager"><?php esc_html_e('Email', 'wcmlim'); ?></label>
+      </th>    
+      <td>
+      <input class="form-control" id="wcmlim_email_regmanager" name="wcmlim_email_regmanager" type="text" value="<?php echo esc_attr( $wcmlim_email_regmanager ) ?>" /> 
+      </td> 
+  </tr>
     <?php $espe = get_option("wcmlim_assign_location_shop_manager");    
     if ($espe == "on") { ?>
       <tr class="form-field term-c-wrap">

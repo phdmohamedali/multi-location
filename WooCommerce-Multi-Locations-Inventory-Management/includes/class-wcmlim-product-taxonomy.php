@@ -73,6 +73,7 @@ class Wcmlim_Product_Taxonomy
       'delete_terms'               => 'manage_woocommerce',
       'assign_terms'               => 'manage_woocommerce',
     );
+ 
     $args = array(
       'labels'                     => $labels,
       'hierarchical'               => true,
@@ -84,8 +85,10 @@ class Wcmlim_Product_Taxonomy
       'show_in_menu'               => true,
       'show_tagcloud'              => true,
       'capabilities'               => $capabilities,
-      'meta_box_cb'                => false
+      // 'meta_box_cb'                => false  
     );
+
+
 
 
 
@@ -357,6 +360,11 @@ class Wcmlim_Product_Taxonomy
    */
   public function formSave_location_group($term_id)
   {
+    update_term_meta(
+      $term_id,
+      'wcmlim_email_regmanager',
+      sanitize_text_field( $_POST[ 'wcmlim_email_regmanager' ] )
+    );
     if ($_POST) {
       $groupshopManager = isset($_POST['wcmlim_shop_regmanager']) ? (array) $_POST['wcmlim_shop_regmanager'] : array();
       $groupshopManager = array_map('esc_attr', $groupshopManager);

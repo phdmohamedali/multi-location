@@ -1,5 +1,69 @@
 jQuery( document ).ready( ( $ ) =>
 {
+  location_as_taxonomy();
+  function location_as_taxonomy(){
+
+    location_as_taxonomy_helper();
+    function location_as_taxonomy_helper(){
+      var loc_arr = [];
+      $.each($("input[name='tax_input[locations][]']:not(:checked)"), function(){
+          loc_arr.push($(this).val());
+      });
+      for (let i = 0; i < loc_arr.length; i++) {
+        $("#locationID_"+ loc_arr[i] +"").hide();
+        $(".locationID_"+ loc_arr[i] +"").hide();
+
+      }};
+     
+
+    jQuery('#taxonomy-locations').on('click', '.selectit', function ()
+    {
+      var whatVal = jQuery(this).children("input").val();
+      var isChecked = jQuery(this).children("input").prop("checked");
+      if(isChecked === true){
+        $("#locationID_"+ whatVal +"").children("p").children("input").val('1');
+        $("#locationID_"+ whatVal +"").show();
+
+        $(".locationID_"+ whatVal +"").children("p").children("input").val('1');
+        $(".locationID_"+ whatVal +"").show();
+
+      }
+      if(isChecked === false){
+        $("#locationID_"+ whatVal +"").children("p").children("input").val('');
+        $("#locationID_"+ whatVal +"").hide();
+
+        $(".locationID_"+ whatVal +"").children("p").children("input").val('');
+        $(".locationID_"+ whatVal +"").hide();
+        
+      }
+    });
+  }
+
+
+  validation_add_location();
+    function validation_add_location()
+    {
+      if($(".taxonomy-locations").length > 0)
+      {
+
+      var tag_name = $('#tag-name').val();
+      var postal_code = $('#postal_code').val();
+      var country = $('#country').val();
+      if ((postal_code != "") && (country != '') && (tag_name != '') && (tag_name != null))
+      {
+        
+        $('#submit').removeAttr('disabled');                
+        $('.alert-text').hide();
+      } else {
+          $('#submit').attr("disabled", true);
+          $('.alert-text').text('Please fill all mandatory fields.').show();  
+      }
+    }
+    }
+  jQuery("#postal_code, #tag-name,  #country").on('input', function(e) {
+    validation_add_location();
+  });
+      
 
   jQuery('#lcpriority').on('keyup',function(){
     var lcpriority = jQuery( '#lcpriority' ).val();
@@ -117,6 +181,8 @@ jQuery( document ).ready( ( $ ) =>
           }
         }
       } );
+      validation_add_location();
+ 
 
     }
   }
@@ -811,19 +877,20 @@ document.addEventListener( "wheel", function ( event )
     document.activeElement.blur();
   }
 } );
+jQuery( document ).ready( ( $ ) =>
+{
+  if($('#wcmlim_use_location_widget').prop("checked")) {
+    $("#wcmlim_option_for_selection").show();
+  }else{
+    $("#wcmlim_option_for_selection").hide();
+  }
 
-    jQuery( document ).ready( function ( $ )
-    {
-       
-      $("#postal_code, #tag-name, #country").on("input", function(e) {
-          var postal_code = $('#postal_code').val();
-            var country = $('#country').val();
-            if (postal_code == '' || country == ''){
-                $('#submit').attr("disabled", true);
-                $('.alert-text').text('Please fill all mandatory fields.').show();  
-            }else{
-                $('#submit').attr('disabled', false);
-                $('.alert-text').hide();
-            }
-         });
-        })
+  $("#wcmlim_use_location_widget").click(function() {
+      if($('#wcmlim_use_location_widget').prop("checked")) {
+          $("#wcmlim_option_for_selection").show();
+      } else {
+          $("#wcmlim_option_for_selection").hide();
+      }
+  });
+
+  });

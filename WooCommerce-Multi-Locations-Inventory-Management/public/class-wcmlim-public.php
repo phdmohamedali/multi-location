@@ -47,6 +47,7 @@ class Wcmlim_Public
 	{
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
+              
 	}
 
 
@@ -78,8 +79,13 @@ class Wcmlim_Public
 		}
 
 		$advanceListView = get_option('wcmlim_radio_loc_format');
-		if ($advanceListView == "advanced_list_view") {
+		$optiontype_loc = get_option('wcmlim_select_or_dropdown');
+		if ($advanceListView == "advanced_list_view"  && $optiontype_loc == 'on') {
 		wp_enqueue_style($this->plugin_name. '_list_view_pro', plugin_dir_url(__FILE__) . 'css/wcmlim-list-view-pro-min.css', array(), $this->version . rand(), 'all');
+		$theme = wp_get_theme();
+    	if ($theme['Name'] == 'Astra') {
+   		wp_enqueue_style($this->plugin_name. '_list_view_pro_astra', plugin_dir_url(__FILE__) . 'css/wcmlim-astra-list-view-min.css', array(), $this->version . rand(), 'all');
+    	}
 		}
 	}
 
@@ -143,7 +149,7 @@ class Wcmlim_Public
 		// wcmlim_ajax_add_to_cart
 		wp_enqueue_script($this->plugin_name . '_add_to_cart_js', plugin_dir_url(__FILE__) . 'js/ajax-add-to-cart-min.js', array('jquery'), $this->version . rand(), true);
 		 wp_enqueue_script($this->plugin_name, plugin_dir_url(__FILE__) . 'js/wcmlim-public-min.js', array('jquery'), $this->version . rand(), true);
-		if ( $isLocationsGroup == "on" ) {
+		 if ( $isLocationsGroup == "on" ) {
 			wp_enqueue_script($this->plugin_name . '_locator', plugin_dir_url(__FILE__) . 'js/wcmlim-locator-min.js', array('jquery'), $this->version . rand(), true);	
 			if ($getdirection == 'on') {
 				wp_enqueue_script($this->plugin_name.'_getdirlocationgroup', plugin_dir_url(__FILE__) . 'js/wcmlim-getdirlocationgroup-min.js', array('jquery'), $this->version . rand(), true);	
@@ -195,7 +201,8 @@ class Wcmlim_Public
 		/* fontawesome */
 		wp_enqueue_script('wcmlim-fontawesome', "https://kit.fontawesome.com/82940a45e9.js", array('jquery'), $this->version, true);
 		$advanceListView = get_option('wcmlim_radio_loc_format');
-		if ($advanceListView == "advanced_list_view") {
+		$optiontype_loc = get_option('wcmlim_select_or_dropdown');
+		if ($advanceListView == "advanced_list_view" && $optiontype_loc == 'on') {
 			wp_enqueue_script($this->plugin_name. '_list_view_pro', plugin_dir_url(__FILE__) . 'js/wcmlim-advanced-list-view-min.js', array(), $this->version . rand(), 'all');
 		}
 	}
@@ -274,6 +281,7 @@ class Wcmlim_Public
 			));
 		}
 	}
+       
 	// Distance Matrix API to Display the Closest Location for the Product
 	public function wcmlim_closest_location()
 	{
@@ -1612,6 +1620,7 @@ class Wcmlim_Public
 								}
 							} elseif ($product instanceof WC_Product && $product->is_type('simple') && !$product->is_downloadable() && !$product->is_virtual()) {
 								$productOnBackorder = $product->backorders_allowed();
+								$product_id = $product->get_id();
 								if ($preffLocation) {
 									foreach ($terms as $k => $term) {
 										$stock_location_quantity = get_post_meta($post->ID, "wcmlim_stock_at_{$term->term_id}", true);
@@ -1644,7 +1653,7 @@ class Wcmlim_Public
 									<div class="Wcmlim_box_wrapper">
 										<div class="Wcmlim_box_content select_location-wrapper">
 											<div class="Wcmlim_box_header">
-												<h4 class="Wcmlim_box_title">
+												<h3 class="Wcmlim_box_title">
 													<?php
 													if ($hideDropdown != "on") {
 														 if ($txt_stock_inf) {
@@ -1653,7 +1662,7 @@ class Wcmlim_Public
 														_e('Stock Information', 'wcmlim');
 													}
 												 } ?>
-												</h4>
+												</h3>
 											</div>
 											<div class="Wcmlim_prefloc_box">
 												<?php if ($hideDropdown == "on") { ?>
@@ -1684,7 +1693,8 @@ class Wcmlim_Public
 														<?php } else { ?>
 															<select class="select_location Wcmlim_sel_loc" name="select_location" id="select_location" required>
 														<?php } ?>												
-															<option data-lc-qty="" data-lc-sale-price="" data-lc-regular-price="<?php esc_attr_e($regprice); ?>" value="-1"><?php _e(' - Select Location - ', 'wcmlim'); ?></option>
+														<option data-lc-qty="" data-lc-sale-price="" data-lc-regular-price="<?php esc_attr_e($regprice); ?>" value="-1"><?php _e(' - Select Location - ', 'wcmlim'); ?></option>
+															
 															<?php						
 															
 															foreach ($terms as $k => $term) {
@@ -1697,8 +1707,7 @@ class Wcmlim_Public
 																	$stock_sale_price = wc_price($product->get_sale_price());
 																}
 																$term_meta = get_option("taxonomy_$term->term_id");
-																	$rl = $this->wcmlim_get_loactionaddress($term->term_id);
-																if ($enable_price == "on") {
+																$rl = $this->wcmlim_get_loactionaddress($term->term_id);																if ($enable_price == "on") {
 																	$price = "on";
 																} else {
 																	$price = "off";
@@ -1706,7 +1715,7 @@ class Wcmlim_Public
 																$hide_out_of_stock_location   = get_option('wcmlim_hide_out_of_stock_location');
 																$d_location   = get_option('wcmlim_enable_default_location');
 																$selDefLoc = get_post_meta($post->ID, "wcmlim_default_location", true);
-												
+
 																if (!empty($stock_location_quantity)) {
 																	if (isset($stock_location_quantity)) {
 																		$response = "wcmlim_stock_at_{$term->term_id}";
@@ -1717,17 +1726,18 @@ class Wcmlim_Public
 																			}
 																		} ?>
 																		<option 
+																		$variation_backorder = '';	
 																		<?php		
-																		$variation_backorder = '';																
+																																	
 																		if(!empty($d_location) && !empty($selDefLoc)){
 																			$_actualLcK = explode("_", $selDefLoc);
 																			if ($_actualLcK[1] == $k) echo "selected='selected'";
 																		}else{
 																			if (preg_match('/^\d+$/', $preffLocation)) {
 																				if ($preffLocation == $k) echo "selected='selected'";
-																			} 
-																		} if($product->backorders_allowed()){
-																			$variation_backorder = 'yes';
+																			} } if($product->backorders_allowed()){
+																				$variation_backorder = 'yes';
+	
 																		}
 																		?> 
 																		value="<?php echo $k; ?>" data-lc-backorder="<?php echo $variation_backorder; ?>" data-lc-qty="<?php esc_attr_e($stock_location_quantity); ?>" data-lc-address="<?php esc_attr_e(base64_encode($rl)); ?>" data-lc-regular-price="<?php esc_attr_e(wc_price($stock_regular_price)); ?>" data-lc-sale-price="<?php ((!empty($stock_sale_price)) ?  esc_attr_e(wc_price($stock_sale_price)) : _e("undefined")); ?>" class="<?php echo 'wclimloc_'.$term->slug; ?>"><?php 
@@ -1748,7 +1758,7 @@ class Wcmlim_Public
 																} else {
 																	if (!$product->managing_stock() && $product->is_in_stock()) {
 																		$stock_status = $product->get_stock_status();
-																		if($stock_status == "instock"){
+																															if($stock_status == "instock"){
 																			$optionname = ucfirst($term->name) . ' - ' . __($instock_btntxt, 'wcmlim');
 																			$location_stock_status = 'instock';
 																		}elseif($stock_status == "outofstock"){
@@ -1771,7 +1781,7 @@ class Wcmlim_Public
 																				}
 																			} ?>
 																			<option 
-																			<?php
+																																					<?php
 																			if(!empty($d_location) && !empty($selDefLoc)){
 																				$_actualLcK = explode("_", $selDefLoc);
 																				if ($_actualLcK[1] == $k) echo "selected='selected'";
@@ -1853,7 +1863,8 @@ class Wcmlim_Public
 																$loc_dis_un = get_option('wcmlim_location_distance');
 																?>
 																<input type="text" placeholder="<?php _e('Enter Location', 'wcmlim'); ?>" class="class_post_code" name="post_code" value="<?php esc_html_e($globpin); ?>" id="elementId">
-									
+																<!-- <input type="button" class="button" id="submit_postcode_product" value=" <?php //_e('Check', 'wcmlim'); 
+																																				?>"> -->
 																<button class="button" type="button" id="submit_postcode_product">
 																	<i class="fa fa-map-marker-alt"></i>
 																	<?php if ($oncheck_btntxt) {
@@ -1905,7 +1916,7 @@ class Wcmlim_Public
 												if (
 													$product instanceof WC_Product && $product->is_type('variable') && !$product->is_downloadable() && !$product->is_virtual()
 													|| $product instanceof WC_Product && $product->is_type('simple') && !$product->is_downloadable() && !$product->is_virtual()
-												) { ?>
+												) {  ?>
 											</div>
 										</div>
 									</div>
@@ -2500,9 +2511,6 @@ class Wcmlim_Public
 									echo json_encode($response);
 									die();
 								}
-
-
-
 								public function wcmlim_add_custom_price($cart_object)
 								{
 									// Avoiding hook repetition (when using price calculations for example)
@@ -2586,10 +2594,9 @@ class Wcmlim_Public
 															$current_user_id = get_current_user_id();
 															$current_ui = isset($current_user_id) ? $current_user_id : "";
 															$user_selected_location = get_user_meta($current_ui, 'wcmlim_user_specific_location', true);
-															
+															$restricUsers   = get_option('wcmlim_enable_userspecific_location');
 															$roles = $current_user->roles;
 														if ($isLocationsGroup == 'on' ) { ?>
-														
 															<p class="wcmlim_change_sl_to"><?php if ($Inline_title) {
 																								echo $Inline_title;
 																							} else {
@@ -2606,34 +2613,87 @@ class Wcmlim_Public
 																?>
 															</select>
 															<p class="wcmlim_change_lc_to" id="wcmlim_store_label_popup"><?php _e('Store: ', 'wcmlim'); ?></p>	
-															<select name="wcmlim_change_lc_to" class="wcmlim-lc-select <?php
-															$lcselect = get_option('wcmlim_enable_location_group');
-															if($lcselect == 'on'){
-															echo "wcmlim-lc-select-2";
-															}
-															?>" id="wcmlim-change-lc-select">
-																<option value="-1" <?php if (!$selected_location) echo "selected='selected'"; ?>><?php _e('Please Select', 'wcmlim') ?></option>
-															
-															</select>
-															<?php } else if (!empty($current_user_id)){ ?>
+															<?php if ($restricUsers == "on" && $roles[0] == "customer") { ?>
+															<select name="wcmlim_change_lc_to" class="wcmlim-lc-select" id="wcmlim-change-lc-select">
+															<option value="-1" <?php if (
+																!$selected_location
+															) {
+																echo "selected='selected'";
+															} ?>><?php _e("Select", "wcmlim"); ?></option>
+															<?php foreach (
+																$locations_list
+																as $key => $loc
+															) {
+																if (
+																	preg_match(
+																		'/^\d+$/',
+																		$user_selected_location
+																	)
+																) {
+																	if (
+																		$user_selected_location == $key
+																	) { ?>
+															<option 
+															class="<?php echo "wclimloc_" .
+																$loc["location_slug"]; ?>" 
+															value="<?php echo $key; ?>" 
+															data-lc-address="<?php echo base64_encode(
+																$loc["location_address"]
+															); ?>"
+															data-lc-term="<?php echo $loc[
+																"location_termid"
+															]; ?>" 
+															<?php if (
+																preg_match(
+																	'/^\d+$/',
+																	$user_selected_location
+																)
+															) {
+																if ($user_selected_location == $key) {
+																	echo "selected='selected'";
+																}
+															} ?>>
+															<?php echo ucfirst($loc["location_name"]); ?>
+															</option>
+															<?php }
+																}
+															} ?>
+														</select>
+														<?php } else { ?>
+																<select name="wcmlim_change_lc_to" class="wcmlim-lc-select <?php
+																$lcselect = get_option("wcmlim_enable_location_group");
+																if ($lcselect == "on") {
+																	echo "wcmlim-lc-select-2";
+																}
+																?>" id="wcmlim-change-lc-select">
+																								<option value="-1" <?php if (
+																									!$selected_location
+																								) {
+																									echo "selected='selected'";
+																								} ?>><?php _e(
+																	"Please Select",
+																	"wcmlim"
+																); ?></option>
+																							</select>
+																<?php }
+
+															 } else if ((!empty($current_user_id)) || (empty($current_user_id) && $restricUsers == '')){ 
+																?>
 															<p class="wcmlim_change_lc_to"><?php if ($Inline_title ) {
 																								echo $Inline_title;
 																							} else {
 																								_e('Location: ', 'wcmlim');
 																							}?></p>
-
 																<?php 
 																if(isset($roles[0]) && $roles[0] == 'customer'){ 
 																	?>
 																	<select name="wcmlim_change_lc_to" class="wcmlim-lc-select" id="wcmlim-change-lc-select">
 																	<option value="-1" <?php if (!$selected_location) echo "selected='selected'"; ?>><?php _e('Select', 'wcmlim') ?></option>
 																	<?php
-																	
 																	foreach ($locations_list as $key => $loc) {
 																	if (preg_match('/^\d+$/', $user_selected_location)) {
 																		if ($user_selected_location == $key) {
 																	?>
-
 																	<option 
 																	class="<?php echo 'wclimloc_'.$loc['location_slug']; ?>" 
 																	value="<?php echo $key; ?>" 
@@ -2646,7 +2706,6 @@ class Wcmlim_Public
 																	} 
 																	?>>
 																	<?php echo ucfirst($loc['location_name']); 
-																
 																	?>
 																	</option>
 																<?php 
@@ -2654,10 +2713,30 @@ class Wcmlim_Public
 																	}
 															}	?>
 															</select>
-																	
 																<?php }
 																else if(isset($roles[0]) && $roles[0] != ''){ ?>
-
+																<select name="wcmlim_change_lc_to" class="wcmlim-lc-select" id="wcmlim-change-lc-select">
+																<option value="-1" <?php if (!$selected_location) echo "selected='selected'"; ?>><?php _e('Select', 'wcmlim') ?></option>
+																<?php
+																foreach ($locations_list as $key => $loc) {
+																?>
+																	<option 
+																	class="<?php echo 'wclimloc_'.$loc['location_slug']; ?>" 
+																	value="<?php echo $key; ?>" 
+																	data-lc-address="<?php echo base64_encode($loc['location_address']); ?>"
+																	data-lc-term="<?php echo $loc['location_termid']; ?>" 
+																	<?php if (preg_match('/^\d+$/', $selected_location)) {
+																	if ($selected_location == $key) 
+																	echo "selected='selected'";
+																	} ?>>
+																	<?php echo ucfirst($loc['location_name']); 
+																	?>
+																	</option>
+																<?php }	?>
+															</select>	
+									
+															<?php } 
+															else if ($restricUsers == '') { ?>
 																<select name="wcmlim_change_lc_to" class="wcmlim-lc-select" id="wcmlim-change-lc-select">
 																<option value="-1" <?php if (!$selected_location) echo "selected='selected'"; ?>><?php _e('Select', 'wcmlim') ?></option>
 																<?php
@@ -2680,6 +2759,33 @@ class Wcmlim_Public
 									
 															<?php } 
 													
+														}else {
+															 ?>
+															 <p class="wcmlim_change_lc_to"><?php if ($Inline_title ) {
+																								echo $Inline_title;
+																							} else {
+																								_e('Location: ', 'wcmlim');
+																							}?></p>
+															<select name="wcmlim_change_lc_to" class="wcmlim-lc-select" id="wcmlim-change-lc-select">
+															<option value="-1" <?php if (!$selected_location) echo "selected='selected'"; ?>><?php _e('Select', 'wcmlim') ?></option>
+															<?php
+															foreach ($locations_list as $key => $loc) {
+															?>
+																<option 
+																class="<?php echo 'wclimloc_'.$loc['location_slug']; ?>" 
+																value="<?php echo $key; ?>" 
+																data-lc-address="<?php echo base64_encode($loc['location_address']); ?>"
+																data-lc-term="<?php echo $loc['location_termid']; ?>" 
+																<?php if (preg_match('/^\d+$/', $selected_location)) {
+																if ($selected_location == $key) 
+																echo "selected='selected'";
+																} ?>>
+																<?php echo ucfirst($loc['location_name']); 
+																?>
+																</option>
+															<?php }	?>
+														</select>	
+													<?php 
 														} ?>
 															<div class="er_location"></div>
 															<!-- Radio Listing Mode -->
@@ -2733,7 +2839,6 @@ class Wcmlim_Public
 								 */
                                 public function wcmlim_getdropdown_location()
 								{
-								
 									$termselect = isset($_POST['selectedstoreValue']) ? intval($_POST['selectedstoreValue']) : "";
 									$selected_location = $this->get_selected_location();
 									$isLocEx = get_option("wcmlim_exclude_locations_from_frontend");
@@ -2744,38 +2849,69 @@ class Wcmlim_Public
 									}
 				
 									$result = array();
-									
-									foreach ($terms as $i => $term) {										
-										$term_locator = get_term_meta( $term->term_id , 'wcmlim_locator', true);
-										$area_name = get_term_meta( $term->term_id , 'wcmlim_areaname', true);
-										$id = strval($term->term_id);
-										$name = strval($term->name);
-										$slug = strval($term->slug);										
-										$classname = 'wclimloc_'.$slug . ' ' .  'wclimstoreloc_'.$term_locator; 
-										$value = $i; 
-										$selected = "";
-										if (preg_match('/^\d+$/', $selected_location)) {
-											if ($selected_location == $i) 
-											{ 
-												$selected = 'selected';
-											} else  {
-												$selected = "";
+									$current_user = wp_get_current_user();
+									$current_user_id = get_current_user_id();
+									$current_ui = isset($current_user_id) ? $current_user_id : "";
+									$user_selected_location = get_user_meta($current_ui, 'wcmlim_user_specific_location', true);
+									$restricUsers   = get_option('wcmlim_enable_userspecific_location');
+									$roles = $current_user->roles;
+									if ( $restricUsers == 'on' && $roles[0] == 'customer'){
+						
+										foreach ($terms as $i => $term) {	
+											if ( $user_selected_location == $i) {
+												$term_locator = get_term_meta( $term->term_id , 'wcmlim_locator', true);
+												$area_name = get_term_meta( $term->term_id , 'wcmlim_areaname', true);
+												$id = strval($term->term_id);
+												$name = strval($term->name);
+												$slug = strval($term->slug);										
+												$classname = 'wclimloc_'.$slug . ' ' .  'wclimstoreloc_'.$term_locator; 
+												$value = $i; 
+												$selected = "selected";
+
+													$result[$i]['selected'] = $selected_location;	
+													$result[$i]['term_id'] = $id;	
+													$result[$i]['classname'] = $classname;	
+													$result[$i]['vkey'] = $value;	
+													$result[$i]['location_name'] = $name;
+													$result[$i]['location_slug'] = $slug;
+													$result[$i]['location_storeid'] = $term_locator;
+													$result[$i]['wcmlim_areaname'] = $area_name; 
 											}
-										} 
-										
-										if( $term_locator == $termselect) {
-											$result[$i]['selected'] = $selected_location;	
-											$result[$i]['term_id'] = $id;	
-											$result[$i]['classname'] = $classname;	
-											$result[$i]['vkey'] = $value;	
-											$result[$i]['location_name'] = $name;
-											$result[$i]['location_slug'] = $slug;
-											$result[$i]['location_storeid'] = $term_locator;
-											$result[$i]['wcmlim_areaname'] = $area_name; 
 										}
-										              
-										
-									}									
+									 }else {
+										foreach ($terms as $i => $term) {										
+											$term_locator = get_term_meta( $term->term_id , 'wcmlim_locator', true);
+											$area_name = get_term_meta( $term->term_id , 'wcmlim_areaname', true);
+											$id = strval($term->term_id);
+											$name = strval($term->name);
+											$slug = strval($term->slug);										
+											$classname = 'wclimloc_'.$slug . ' ' .  'wclimstoreloc_'.$term_locator; 
+											$value = $i; 
+											$selected = "";
+											if (preg_match('/^\d+$/', $selected_location)) {
+												if ($selected_location == $i) 
+												{ 
+													$selected = 'selected';
+												} else  {
+													$selected = "";
+												}
+											} 
+											
+											if( $term_locator == $termselect) {
+												$result[$i]['selected'] = $selected_location;	
+												$result[$i]['term_id'] = $id;	
+												$result[$i]['classname'] = $classname;	
+												$result[$i]['vkey'] = $value;	
+												$result[$i]['location_name'] = $name;
+												$result[$i]['location_slug'] = $slug;
+												$result[$i]['location_storeid'] = $term_locator;
+												$result[$i]['wcmlim_areaname'] = $area_name; 
+											}
+														  
+											
+										}
+									 }
+															
 									echo json_encode($result);									
 									die(); 
 								}
@@ -3181,7 +3317,7 @@ class Wcmlim_Public
 										$slug = $term->slug;
 										$get_address = $term_meta['wcmlim_street_number'] . ' ' . $term_meta['wcmlim_route'] . ' ' . $term_meta['wcmlim_locality'] . ' ' . $term_meta['wcmlim_administrative_area_level_1'] . ',' . $term_meta['wcmlim_country'] . ' - ' . $term_meta['wcmlim_postal_code'];
 										$get_address_dir = str_replace(' ', '+', $get_address);
-										$wcmlim_email = get_term_meta($term->term_id, 'wcmlim_email', true);
+										$wcmlim_email = get_term_meta($term->term_id, 'wcmlim_email_regmanager', true);
 										$html = "<div class='wcmlim-map-sidebar-list' id='$term->term_id'>
 										<h4> $term->name </h4>
 										<p class='location-address'>
@@ -3612,10 +3748,36 @@ class Wcmlim_Public
 											$author_id = 	$shop_manager[0];
 											$author_obj = get_user_by('id', $author_id);
 											$author_email = $author_obj->user_email;	
-											$wcmlim_email = $author_email . ", " . $wcmlim_emailadd;		
+											if($wcmlim_emailadd) {
+												$wcmlimemail = $author_email . ", " . $wcmlim_emailadd;	
+											}  else {
+												$wcmlimemail = $author_email;	
+											}												
 										} else {
-											$wcmlim_email = $wcmlim_emailadd;
+											$wcmlimemail = $wcmlim_emailadd;
 										}
+										/*Regional code */
+										$regM = get_term_meta($wcmlim_email_val, "wcmlim_locator", true);
+										$regM2 = get_term_meta($regM, "wcmlim_shop_regmanager", true);
+										$wcmlim_regemail = get_term_meta($regM, 'wcmlim_email_regmanager', true);
+										if ($regM2) {
+											$authorid = 	$regM2[0];
+											$authorobj = get_user_by('id', $authorid);
+											$authoremail = $authorobj->user_email;	
+												if($wcmlim_regemail) {
+													$regwcmlimemail = $authoremail . ", " . $wcmlim_regemail;		
+												} else {
+													$regwcmlimemail = $authoremail;		
+												}	
+										} else {
+											$regwcmlimemail = $wcmlim_regemail;
+										}
+										
+										if($regwcmlimemail) {
+											$wcmlim_email = $regwcmlimemail . ", " . $wcmlimemail;		
+										} else {
+											$wcmlim_email = $wcmlimemail;		
+										}	
 										
 										if (isset($wcmlim_email) && !empty($wcmlim_email)) {
 											include(plugin_dir_path(dirname(__FILE__)) . 'public/partials/email-template.php');
@@ -3766,6 +3928,7 @@ class Wcmlim_Public
 														foreach ($translations as $lang => $translation) {
 															if ($translation->element_id != $product_id) {
 																update_post_meta($translation->element_id, "wcmlim_stock_at_{$term->term_id}", $stock);
+															
 															}
 														}
 														if (!$updating) {
@@ -3774,7 +3937,20 @@ class Wcmlim_Public
 													}
 													update_post_meta($product_id, "wcmlim_stock_at_{$term->term_id}", $stock);
 												}
+												
 											}
+											$locations = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
+											$stock = '';
+											foreach($locations as $key=>$term){
+													$stock  = intval(get_post_meta($product_id, "wcmlim_stock_at_{$term->term_id}", true));
+													if($stock == '' || $stock == 0){
+													 $removetermName[] = $term->slug;
+													}else{
+													 $termName[] = $term->slug;
+													}
+											 }
+											wp_set_object_terms( $product_id, $termName, 'locations' );
+											wp_remove_object_terms( $product_id, $removetermName, 'locations' );
 											do_action('woocommerce_variation_before_set_stock', $product_with_stock);
 										} else {
 
@@ -3824,7 +4000,10 @@ class Wcmlim_Public
 															if ($translation->element_id != $product_id) {
 																update_post_meta($translation->element_id, "wcmlim_stock_at_{$term->term_id}", $stock);
 															}
-														}
+														}if($stock == '' || $stock == 0){
+															$removetermName[] = $term->slug;
+														   }
+														   wp_remove_object_terms( $product_id, $removetermName, 'locations' );
 														if (!$updating) {
 															$product_with_stock->save();
 														}
@@ -3841,6 +4020,18 @@ class Wcmlim_Public
 												}
 											}
 
+											$locations = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
+											$stock = '';
+											foreach($locations as $key=>$term){
+													$stock  = intval(get_post_meta($product_id, "wcmlim_stock_at_{$term->term_id}", true));
+													if($stock == '' || $stock == 0){
+													 $removetermName[] = $term->slug;
+													}else{
+													 $termName[] = $term->slug;
+													}
+											 }
+											wp_set_object_terms( $product_id, $termName, 'locations' );
+											wp_remove_object_terms( $product_id, $removetermName, 'locations' );
 											do_action('woocommerce_product_before_set_stock', $product_with_stock);
 										}
 
@@ -4071,6 +4262,8 @@ class Wcmlim_Public
 								}
 								public function wcmlim_change_product_price($price_html, $product)
 								{
+									
+									
 									$setLocation = isset($_COOKIE['wcmlim_selected_location']) ? $_COOKIE['wcmlim_selected_location'] : "";
 									if ($product->get_type() == 'simple') {
 										$terms = get_terms(['taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0]);
@@ -4088,6 +4281,98 @@ class Wcmlim_Public
 											}
 										}
 									}
+									// 6068 show default variation price at locations on shop page code init
+									$default_var_price = get_option('wcmlim_enable_location_onshop_variable');
+									if($default_var_price == 'on'){
+									if ($product->get_type() == 'variable') {
+									
+										$default_attributes = $product->get_default_attributes();
+										foreach($product->get_available_variations() as $variation_values ){
+											foreach($variation_values['attributes'] as $key => $attribute_value ){
+												$attribute_name = str_replace( 'attribute_', '', $key );
+												$default_value = $product->get_variation_default_attribute($attribute_name);
+												if( $default_value == $attribute_value ){
+													$is_default_variation = true;
+												} else {
+													$is_default_variation = false;
+													break; 
+												}
+											}
+											if( $is_default_variation ){
+												$_var_id = $variation_values['variation_id'];
+												break; 
+											}
+										}
+										
+										$terms = get_terms(['taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0]);
+										$selected_loc_id = $_COOKIE['wcmlim_selected_location'];
+										foreach($terms as $key=>$term){
+											if($key == $selected_loc_id){
+												$sel_term_id = $term->term_id;
+											}}
+											$locRP = get_post_meta($_var_id, "wcmlim_regular_price_at_{$sel_term_id}", true);
+										
+										foreach ($terms as $k => $term) {
+											$locRP = get_post_meta($_var_id, "wcmlim_regular_price_at_{$sel_term_id}", true);
+											
+											$locSP = get_post_meta($_var_id, "wcmlim_sale_price_at_{$sel_term_id}", true);
+											$wRP = wc_price($locRP);
+											$wSP = wc_price($locSP);
+											if ($setLocation == $k) {
+												if (!empty($locSP)) {
+													$price_html = "<del>{$wRP}</del><ins>{$wSP}</ins>";
+												} elseif (!empty($locRP)) {
+													$price_html = $wRP;
+												}
+											}
+										}
+									}
+									
+									if($product->get_type() == 'variable' && (empty($product->get_default_attributes()))){
+										
+										$terms = get_terms(['taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0]);
+										$selected_loc_id = $_COOKIE['wcmlim_selected_location'];
+										foreach($terms as $key=>$term){
+											if($key == $selected_loc_id){
+												$sel_term_id = $term->term_id;
+											}
+										}
+
+										foreach($product->get_available_variations() as $variation_values ){
+												$_var_id[] = $variation_values['variation_id'];
+										}
+											
+										foreach ($_var_id as $k => $var_id) {
+											
+											$locRP[] = get_post_meta($var_id, "wcmlim_regular_price_at_{$sel_term_id}", true);
+											
+											$locSP[] = get_post_meta($var_id, "wcmlim_sale_price_at_{$sel_term_id}", true);
+										}
+
+										if(is_array($locRP) && is_array($locSP)){
+											$locRP = array_unique($locRP);
+											$locSP = array_unique($locSP);
+											sort($locRP);
+											sort($locSP);
+											$cp = (int)count($locRP) - 1;
+											$cps = (int)count($locSP) - 1;
+	
+											$rminPrice = wc_price($locRP[0]);
+											$rmaxPrice = wc_price($locRP[$cp]);
+	
+											
+	
+											$sminPrice = wc_price($locSP[0]);
+											$smaxPrice = wc_price($locSP[$cps]);
+	
+	
+											$price_html = "<del>{$rminPrice} - {$rmaxPrice}</del>  <ins>{$sminPrice} - {$smaxPrice}</ins>";
+										}
+										
+									}
+
+								}
+									// show default variation price at locations on shop page code end
 									return $price_html;
 								}
 
@@ -4137,6 +4422,7 @@ class Wcmlim_Public
 
 								public function wcmlim_change_product_query($q)
 								{
+									
 									$args = array(
 										'post_type'      => 'product',
 										'posts_per_page' => '-1'
@@ -4159,44 +4445,52 @@ class Wcmlim_Public
 									wp_reset_query();
 									
 									//now get selected location id
-									$selected_loc_id = $_COOKIE['wcmlim_selected_location']; 
+									$selected_loc_id = $_COOKIE['wcmlim_selected_location'] ? $_COOKIE['wcmlim_selected_location'] : null ; 
 									$locations = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
 									foreach($locations as $key => $term){     
 										if($key == $selected_loc_id){
 											$term_ids = $term->term_id;
 										}
 									}
-									
 									if(is_array($vp_ids)){
 										$all_ids = array_merge($all_ids, $vp_ids);
 									}
 									
 									//now get stock at locations for each products
 									foreach($all_ids as $pid){
-									   $stock_at_loc = get_post_meta($pid, "wcmlim_stock_at_{$term_ids}", true); 
-									  if(isset($pid))
-									  {
-										$prod = wc_get_product( $pid );
-										if( $prod->is_type( 'simple' ) ) {
-											  if($stock_at_loc == 0 || $stock_at_loc == ''){
+										
+											$prodw = wc_get_product( $pid );
+											if($term_ids) {
+												$stock_at_loc = get_post_meta($pid, "wcmlim_stock_at_{$term_ids}", true);
+												$stock_at_loc = ( $stock_at_loc <= 0 || $stock_at_loc == null || $stock_at_loc == "undefined") ? 0 : 1; 
+												
+											  } else {		
+													$stock_at_loc = intval($prodw->get_stock_quantity());
+													$stock_at_loc = ( $stock_at_loc <= 0 || $stock_at_loc == null || $stock_at_loc == "undefined") ? 0 : 1; 
+													
+											  }
+											
+															  
+											if( $prodw->is_type( 'simple' ) ) {
+											 if( $stock_at_loc == 0 ){
 												$product_with_outstock[] = $pid;
 											  } 
-										  } else 
-										  {   $variation = wc_get_product($pid);
-											 $variation_backorder = $variation->backorders_allowed();
-											  if($stock_at_loc == 0 || $stock_at_loc == ""){
-												  if($variation_backorder == '1' ){
+										 	} else {   
+												$variation = wc_get_product($pid);
+												$variation_backorder = $variation->backorders_allowed();
+												if($stock_at_loc <= 0 || $stock_at_loc == null || $stock_at_loc == false){
+													if($variation_backorder == '1' ){
+														$withstock[] = $variation->get_parent_id();
+													}
+												
+													$product_with_outstock[] = $variation->get_parent_id();
+												}
+												if($stock_at_loc > 0){
+													
 													$withstock[] = $variation->get_parent_id();
-												  }
-												
-												$product_with_outstock[] = $variation->get_parent_id();
-											  }
-											  if($stock_at_loc > 0){
-												
-												$withstock[] = $variation->get_parent_id();
-											  }
-										  }
-									   }
+												}
+										  	}
+									//   }
 									}
 									if(!empty($withstock)){
 									  $new_array = array_diff($product_with_outstock, $withstock);

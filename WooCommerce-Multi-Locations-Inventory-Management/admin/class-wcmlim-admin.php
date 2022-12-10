@@ -70,19 +70,19 @@ class Wcmlim_Admin
      */
     if(isset($_GET['page']) && $_GET['page'] == "wcmlim-product-central") {
       wp_enqueue_style($this->plugin_name . 'css-datatable', 'https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css', array(), $this->version, 'all');   
-      wp_enqueue_style($this->plugin_name . '-central', plugin_dir_url(__FILE__) . 'css/wcmlim-admin-central-min.css', array(), $this->version, 'all');
+      wp_enqueue_style($this->plugin_name . '-central', plugin_dir_url(__FILE__) . 'css/wcmlim-admin-central.css', array(), $this->version, 'all');
     } 
     wp_enqueue_style($this->plugin_name . '_chosen_css', plugin_dir_url(__FILE__) . 'css/chosen.min.css', array(), $this->version, 'all');
-    wp_enqueue_style($this->plugin_name, plugin_dir_url(__FILE__) . 'css/wcmlim-admin-min.css', array(), $this->version, 'all');
+    wp_enqueue_style($this->plugin_name, plugin_dir_url(__FILE__) . 'css/wcmlim-admin.css', array(), $this->version, 'all');
     /*alertify css added*/
     wp_enqueue_style($this->plugin_name . 'alertify', plugin_dir_url(__FILE__) . 'css/alertify.min.css', array(), $this->version, 'all');
     wp_enqueue_style($this->plugin_name . 'alertify-theme', plugin_dir_url(__FILE__) . 'css/default.min.css', array(), $this->version, 'all');
     /* Display Preview */
     wp_enqueue_style('wp-color-picker');
-    wp_enqueue_style($this->plugin_name . '_designbox_css', WCMLIM_URL_PATH . '/public/css/wcmlim-public-min.css', array(), $this->version, 'all');
+    wp_enqueue_style($this->plugin_name . '_designbox_css', WCMLIM_URL_PATH . '/public/css/wcmlim-public.css', array(), $this->version, 'all');
     $customcss_enable = get_option('wcmlim_custom_css_enable');
     if ($customcss_enable == "") {
-      wp_enqueue_style($this->plugin_name . '_frontview_css', WCMLIM_URL_PATH . '/public/css/wcmlim-frontview-min.css', array(), $this->version, 'all');
+      wp_enqueue_style($this->plugin_name . '_frontview_css', WCMLIM_URL_PATH . '/public/css/wcmlim-frontview.css', array(), $this->version, 'all');
     }
   }
 
@@ -108,49 +108,28 @@ class Wcmlim_Admin
     $api_key = get_option('wcmlim_google_api_key');
     if(isset($_GET['page']) && $_GET['page'] == "wcmlim-product-central") {
       wp_enqueue_script( 'wcmlim-datatable', 'https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js', array( 'jquery' ), '1.10.21', true );
-      wp_enqueue_script($this->plugin_name . '_wcmlim_product-central', plugin_dir_url(__FILE__) . 'js/wcmlim-central-min.js', array('jquery'), $this->version . rand(), false);
+      wp_enqueue_script($this->plugin_name . '_pc', plugin_dir_url(__FILE__) . 'js/wcmlim-central.js', array('jquery'), $this->version . rand(), false);
     } 
     wp_enqueue_script($this->plugin_name . '_chosen_js', plugin_dir_url(__FILE__) . 'js/chosen.jquery.min.js', array('jquery'), $this->version . rand(), false);
-    wp_enqueue_script($this->plugin_name, plugin_dir_url(__FILE__) . 'js/wcmlim-admin-min.js', array('jquery'), $this->version . rand(), false);
-    wp_enqueue_script($this->plugin_name. '_validation_js', plugin_dir_url(__FILE__) . 'js/product_edit_validation.min.js', array('jquery'), $this->version . rand(), false);
-
-    wp_enqueue_script($this->plugin_name.'_deactivate', plugin_dir_url(__FILE__) . 'js/wcmlim-deactivate-min.js', array('jquery'), $this->version . rand(), false);
+    wp_enqueue_script($this->plugin_name, plugin_dir_url(__FILE__) . 'js/wcmlim-admin.js', array('jquery'), $this->version . rand(), false);
+    wp_enqueue_script($this->plugin_name.'_deactivate', plugin_dir_url(__FILE__) . 'js/wcmlim-deactivate.js', array('jquery'), $this->version . rand(), false);
     /*alertify js added*/
     wp_enqueue_script($this->plugin_name . '_alerify', plugin_dir_url(__FILE__) . 'js/alertify.min.js', array('jquery'), $this->version . rand(), false);
     wp_localize_script($this->plugin_name, 'multi_inventory', array("ajaxurl" => admin_url("admin-ajax.php"), 'check_nonce' => wp_create_nonce('mi-nonce')));
     wp_enqueue_script($this->plugin_name . '_google_places', "https://maps.googleapis.com/maps/api/js?key={$api_key}&libraries=places", array('jquery'), $this->version, true);
     /* Display Preview && fontawesome */
-    
-     // Add Validation to "Exclude all locations" settings - User should not able to exclude all locations -code init
-     $notexcludedLocations = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
-     $allowedcount_for_exclude = count($notexcludedLocations) - 1;
-     $dataToPass = array(
-       'keys' => $allowedcount_for_exclude
-     );
-     wp_localize_script( $this->plugin_name, 'passedData', $dataToPass );
-      // Add Validation to "Exclude all locations" settings - User should not able to exclude all locations -code end
-      //
-      // Add Validation to "Exclude all locations" settings - User should not able to exclude all locations -code init
-     $notexcludedLocations_group = get_terms(array('taxonomy' => 'location_group', 'hide_empty' => false, 'parent' => 0));
-     $allowedcount_for_exclude_group = count($notexcludedLocations_group) - 1;
-     $dataToPass_group = array(
-       'keys' => $allowedcount_for_exclude_group
-     );
-     wp_localize_script( $this->plugin_name, 'passedData_group', $dataToPass_group );
-       // Add Validation to "Exclude all locations" settings - User should not able to exclude all locations -code end
-
     wp_enqueue_script('wp-color-picker');
     wp_enqueue_script('wcmlim-fontawesome', "https://kit.fontawesome.com/82940a45e9.js", array('jquery'), $this->version, true);
     wp_enqueue_script($this->plugin_name . 'preview', plugin_dir_url(__FILE__) . 'js/wcmlim-admin-preview-min.js', array('jquery'), $this->version . rand(), false);
     /* bulk assign location to users and products */
-    wp_enqueue_script($this->plugin_name . '_set_bulk_defaultloc', plugin_dir_url(__FILE__) . 'js/set-bulk-default-loc-min.js', array('jquery'), $this->version . rand(), false);
+    wp_enqueue_script($this->plugin_name . '_set_bulk_defaultloc', plugin_dir_url(__FILE__) . 'js/set-bulk-default-loc.js', array('jquery'), $this->version . rand(), false);
     /*update all products js*/
-    wp_enqueue_script($this->plugin_name . '_update_all_products', plugin_dir_url(__FILE__) . 'js/updateallproducts-min.js', array('jquery'), $this->version . rand(), false);
-    wp_enqueue_script($this->plugin_name . '_update_all_orders', plugin_dir_url(__FILE__) . 'js/wcmlim-order-update-min.js', array('jquery'), $this->version . rand(), false);
+    wp_enqueue_script($this->plugin_name . '_update_all_products', plugin_dir_url(__FILE__) . 'js/updateallproducts.js', array('jquery'), $this->version . rand(), false);
+    wp_enqueue_script($this->plugin_name . '_update_all_orders', plugin_dir_url(__FILE__) . 'js/wcmlim-order-update.js', array('jquery'), $this->version . rand(), false);
 
     $enable_COGSprice = get_option('wcmlim_enable_COGSprice');
     if ($enable_COGSprice == 'on') {
-      wp_enqueue_script($this->plugin_name . '_cogsValidation', plugin_dir_url(__FILE__) . 'js/wcmlim-cogs-validation-min.js', array('jquery'), $this->version . rand(), false);
+      wp_enqueue_script($this->plugin_name . '_cogsValidation', plugin_dir_url(__FILE__) . 'js/wcmlim-cogs-validation.js', array('jquery'), $this->version . rand(), false);
     }
     
   }
@@ -276,7 +255,7 @@ class Wcmlim_Admin
       plugins_url('WooCommerce-Multi-Locations-Inventory-Management/admin/img/pins.png'),
       '65'
     );
-    if (get_option('wcmlim_license') == '' || get_option('wcmlim_license') == 'invalid') {
+    /* if (get_option('wcmlim_license') == '' || get_option('wcmlim_license') == 'invalid') {
       add_submenu_page(
         'multi-location-inventory-management',
         __('Settings', 'wcmlim'),
@@ -315,7 +294,7 @@ class Wcmlim_Admin
         'manage_options',
         'multi-location-inventory-management'
       );
-    } else {
+    } else { */
       add_submenu_page(
         'multi-location-inventory-management',
         __('Settings', 'wcmlim'),
@@ -365,15 +344,7 @@ class Wcmlim_Admin
         'wcmlim-map-settings',
         array($this, 'wcmlim_map_settings')
       );
-      add_submenu_page(
-        'multi-location-inventory-management',
-        __('Addons' , 'wcmlim'),
-        __('Addons' , 'wcmlim'),
-        'manage_options',
-        'wcmlim-addon-settings',
-        array($this, 'wcmlim_addon_settings')
-      );
-    }
+    // }
     
   }
 
@@ -480,11 +451,6 @@ class Wcmlim_Admin
     require plugin_dir_path(__FILE__) . 'partials/wcmlim-map-settings.php';
   }
 
-  public function wcmlim_addon_settings()
-  {
-    require plugin_dir_path(__FILE__) . 'partials/wcmlim-addon-settings.php';
-  }
-
   /**
    * Product Central Callback Function.
    *
@@ -532,10 +498,7 @@ class Wcmlim_Admin
       $this->option_name . '_general',
       array('label_for' => $this->option_name . '_enable_userspecific_location')
     );
-    $isLocationsGroup = get_option('wcmlim_enable_location_group');
-    if($isLocationsGroup == 'on'){
-      $excludedLocationGroup = get_option($this->option_name . '_exclude_locations_group_frontend');
-   
+
     add_settings_field(
       $this->option_name . '_exclude_locations_group_frontend',
       __('Exclude Location Group From FrontEnd', 'wcmlim'),
@@ -543,7 +506,7 @@ class Wcmlim_Admin
       $this->plugin_name,
       $this->option_name . '_general',
       array('label_for' => $this->option_name . '_exclude_locations_group_frontend')
-      );}
+    );
 
     add_settings_field(
       $this->option_name . '_exclude_locations_from_frontend',
@@ -561,15 +524,6 @@ class Wcmlim_Admin
       $this->plugin_name,
       $this->option_name . '_general',
       array('label_for' => $this->option_name . '_next_closest_location')
-    );
-
-    add_settings_field(
-      $this->option_name . '_distance_calculator_by_coordinates',
-      __('Distance Calculator Using Coordinates', 'wcmlim'),
-      array($this, $this->option_name . '_distance_calculator_by_coordinates_callback'),
-      $this->plugin_name,
-      $this->option_name . '_general',
-      array('label_for' => $this->option_name . '_distance_calculator_by_coordinates')
     );
 
     add_settings_field(
@@ -609,15 +563,6 @@ class Wcmlim_Admin
     );
 
     add_settings_field(
-      $this->option_name . '_wc_pos_compatiblity',
-      __('WooCommerce Point of Sale Compatibility', 'wcmlim'),
-      array($this, $this->option_name . '_wc_pos_compatibility_callback'),
-      $this->plugin_name,
-      $this->option_name . '_general',
-      array('label_for' => $this->option_name . '_wc_pos_compatiblity')
-    );
-  
-    add_settings_field(
       $this->option_name,
       __('<div class="wcmlim-form-divider">Backend Only Mode <hr></div>', 'wcmlim'),     
       array($this, $this->option_name . '_general_backend_mode'),
@@ -631,7 +576,7 @@ class Wcmlim_Admin
       array($this, $this->option_name . '_order_fulfil_edit_callback'),
       $this->plugin_name,
       $this->option_name . '_general',
-      array('label_for' => $this->option_name . '_order_fulfil_edit' , 'class' => 'hidden')
+      array('label_for' => $this->option_name . '_order_fulfil_edit')
     );
 
     add_settings_field(
@@ -657,11 +602,9 @@ class Wcmlim_Admin
     register_setting($this->plugin_name, $this->option_name . '_enable_userspecific_location');
     register_setting($this->plugin_name, $this->option_name . '_show_location_selection');
     register_setting($this->plugin_name, $this->option_name . '_pos_compatiblity');
-    register_setting($this->plugin_name, $this->option_name . '_wc_pos_compatiblity');
     register_setting($this->plugin_name, $this->option_name . '_exclude_locations_group_frontend');
     register_setting($this->plugin_name, $this->option_name . '_exclude_locations_from_frontend');
     register_setting($this->plugin_name, $this->option_name . '_next_closest_location');
-    register_setting($this->plugin_name, $this->option_name . '_distance_calculator_by_coordinates');
     register_setting($this->plugin_name, $this->option_name . '_hide_out_of_stock_location');
     register_setting($this->plugin_name, $this->option_name . '_order_fulfil_edit');
     register_setting($this->plugin_name, $this->option_name . '_allow_only_backend');
@@ -1037,16 +980,13 @@ class Wcmlim_Admin
       array('label_for' => $this->option_name . '_allow_tax_to_locations')
     );
 
-
     register_setting($this->plugin_name . '_shipping_zone_method_settings', $this->option_name . '_assign_payment_methods_to_locations');
     register_setting($this->plugin_name . '_shipping_zone_method_settings', $this->option_name . '_enable_shipping_methods');
     register_setting($this->plugin_name . '_shipping_zone_method_settings', $this->option_name . '_enable_split_packages');
     register_setting($this->plugin_name . '_shipping_zone_method_settings', $this->option_name . '_enable_shipping_zones');
     register_setting($this->plugin_name . '_shipping_zone_method_settings', $this->option_name . '_allow_local_pickup');
     register_setting($this->plugin_name . '_shipping_zone_method_settings', $this->option_name . '_allow_tax_to_locations');
-    register_setting($this->plugin_name . '_shipping_zone_method_settings', $this->option_name . '_enable_tax_to_each_item');
 
-   
     // Shipping Zone and Shipping Method setting section
     add_settings_section(
       $this->option_name . '_product_shop_page_settings',
@@ -1055,7 +995,6 @@ class Wcmlim_Admin
       $this->plugin_name . '_product_shop_page_settings'
     );
 
-   
 
     add_settings_field(
       $this->option_name . '_enable_location_onshop',
@@ -1076,12 +1015,12 @@ class Wcmlim_Admin
     );
 
     add_settings_field(
-      $this->option_name . '_hide_outofstock_products',
-      __('Hide out of stock products', 'wcmlim'),
-      array($this, $this->option_name . '_hide_outofstock_products_callback'),
+      $this->option_name . '_sort_shop_asper_glocation',
+      __('Filter Product', 'wcmlim'),
+      array($this, $this->option_name . '_sort_shop_asper_glocation_callback'),
       $this->plugin_name . '_product_shop_page_settings',
       $this->option_name . '_product_shop_page_settings',
-      array('label_for' => $this->option_name . '_hide_outofstock_products')
+      array('label_for' => $this->option_name . '_sort_shop_asper_glocation')
     );
 
     add_settings_field(
@@ -1092,11 +1031,12 @@ class Wcmlim_Admin
       $this->option_name . '_product_shop_page_settings',
       array('label_for' => $this->option_name . '_use_location_widget')
     );
+   
     register_setting($this->plugin_name . '_product_shop_page_settings', $this->option_name . '_use_location_widget');
     register_setting($this->plugin_name . '_product_shop_page_settings', $this->option_name . '_widget_select_mode');
     register_setting($this->plugin_name . '_product_shop_page_settings', $this->option_name . '_enable_location_onshop');
     register_setting($this->plugin_name . '_product_shop_page_settings', $this->option_name . '_enable_location_price_onshop');
-    register_setting($this->plugin_name . '_product_shop_page_settings', $this->option_name . '_hide_outofstock_products');
+    register_setting($this->plugin_name . '_product_shop_page_settings', $this->option_name . '_sort_shop_asper_glocation');
     
     // Location Shortcode Settings
     add_settings_section(
@@ -1362,16 +1302,6 @@ class Wcmlim_Admin
       array('label_for' => $this->option_name . '_instock_button_text')
     );
 
-     /** On backorder */
-     add_settings_field(
-      $this->option_name . '_onbackorder_button_text',
-      __('On backorder', 'wcmlim'),
-      array($this, $this->option_name . '_onbackorder_button_text_cb'),
-      $this->option_name . '_display_settings',
-      $this->option_name . '_display_settings',
-      array('label_for' => $this->option_name . '_onbackorder_button_text')
-    );
-
     register_setting($this->option_name . '_display_settings', $this->option_name . '_preview_stock_borderradius');
     register_setting($this->option_name . '_display_settings', $this->option_name . '_preview_stock_border');
     register_setting($this->option_name . '_display_settings', $this->option_name . '_preview_stock_borderoption');
@@ -1387,7 +1317,6 @@ class Wcmlim_Admin
     register_setting($this->option_name . '_display_settings', $this->option_name . '_soldout_button_color');
     register_setting($this->option_name . '_display_settings', $this->option_name . '_soldout_button_text_color');
     register_setting($this->option_name . '_display_settings', $this->option_name . '_instock_button_text');
-    register_setting($this->option_name . '_display_settings', $this->option_name . '_onbackorder_button_text');
     register_setting($this->option_name . '_display_settings', $this->option_name . '_instock_button_color');
     register_setting($this->option_name . '_display_settings', $this->option_name . '_instock_button_text_color');
     register_setting($this->option_name . '_display_settings', $this->option_name . '_display_stock_info');
@@ -1689,7 +1618,7 @@ class Wcmlim_Admin
         <option value="top" <?php if ($popupPosition == 'top') { echo "selected='selected'"; } ?>><?php _e('Top', 'wcmlim'); ?></option>
         <option value="bottom" <?php if ($popupPosition == 'bottom') { echo "selected='selected'"; } ?>><?php _e('Bottom', 'wcmlim'); ?></option>
       </select>            
-      <?php echo '<label class="wcmlim-setting-option-des">' . __('Position for pop up icon.', 'wcmlim') . '</label>'; ?>
+      <?php echo '<label class="wcmlim-setting-option-des">' . __('position for pop up icon.', 'wcmlim') . '</label>'; ?>
       </p>
       <?php       
     }
@@ -1814,18 +1743,6 @@ class Wcmlim_Admin
      *
      * @since    1.0.0
      */
-    public function wcmlim_hide_outofstock_products_callback()
-    {
-      $hideOutOfStock = get_option($this->option_name . '_hide_outofstock_products');
-    ?>
-      <label class="switch">
-        <input type="checkbox" id="<?php esc_attr_e($this->option_name . '_hide_outofstock_products') ?>" name="<?php esc_attr_e($this->option_name . '_hide_outofstock_products') ?>" <?php echo ($hideOutOfStock == 'on') ? 'checked="checked"' : ''; ?>>
-        <span class="slider round"></span>
-      </label>
-      <br />
-      <?php echo '<label class="wcmlim-setting-option-des">' . __('Enable this to hide outofstock products from shop page. This feature hide products where stock at locations is not available or zero', 'wcmlim') . '</label>'; ?>
-    <?php
-    }
 
     public function wcmlim_enable_location_onshop_callback()
     {
@@ -1859,7 +1776,33 @@ class Wcmlim_Admin
     <?php
     }
 
-   //removed old filter product on shop page option
+    /**
+     * Fileter Product On Shop Page
+     *
+     * @since    1.1.8
+     */
+
+    public function wcmlim_sort_shop_asper_glocation_callback()
+    {
+      $shortShop = get_option($this->option_name . '_sort_shop_asper_glocation');
+      global $wp;
+      $c_url = home_url(add_query_arg(array(), $wp->request));
+      $current_url = $c_url . '/wp-admin/admin.php?page=wc-settings&tab=products&section=inventory';
+    ?>
+      <label class="switch">
+        <input type="checkbox" id="<?php esc_attr_e($this->option_name . '_sort_shop_asper_glocation') ?>" name="<?php esc_attr_e($this->option_name . '_sort_shop_asper_glocation') ?>" <?php echo ($shortShop == 'on') ? 'checked="checked"' : ''; ?>>
+        <span class="slider round"></span>
+      </label><br />
+      <?php echo '<label class="wcmlim-setting-option-des">' . __('Enable this to show products from the globally selected location on shop page', 'wcmlim') . '</label>'; ?>
+      <i>if you want to hide out-of-stock products from the site. Go to the woocommerce inventory settings and enable Out of stock visibility.<a href="<?=$current_url;?>" target="_blank"> Here</a></i>
+    <?php
+    }
+
+    /**
+     * Location Filter Widget
+     *
+     * @since    1.2.0
+     */
 
     public function wcmlim_use_location_widget_callback()
     {
@@ -1873,7 +1816,7 @@ class Wcmlim_Admin
         <input type="checkbox" id="<?php esc_attr_e($this->option_name . '_use_location_widget') ?>" name="<?php esc_attr_e($this->option_name . '_use_location_widget') ?>" <?php echo ($widgetOnShop == 'on') ? 'checked="checked"' : ''; ?>>
         <span class="slider round"></span>
       </label>
-    
+      <?php if ($widgetOnShop == "on") { ?>
         <br>
         <p>
           <b><?php echo __('Select dropdown type', 'wcmlim'); ?></b><br>
@@ -1888,7 +1831,7 @@ class Wcmlim_Admin
           </label>
         </p>
       <?php
-   
+      }
       ?>
       <br />
       <?php echo '<label class="wcmlim-setting-option-des">' . __('Enable this to show location filter on the shop page along with WooCommerce filter', 'wcmlim') . '</label>'; ?>
@@ -1953,15 +1896,10 @@ class Wcmlim_Admin
     public function wcmlim_set_location_cookie_time_callback()
     {
       $locationCookieTime = get_option($this->option_name . '_set_location_cookie_time');
-      if($locationCookieTime == ''){
-       update_option($this->option_name . '_set_location_cookie_time', '30');
-      }
-      $locationCookieTime = get_option($this->option_name . '_set_location_cookie_time');
-      // print_r($locationCookieTime);
       ?>
-      <input type="number" min="0" id="<?php esc_attr_e($this->option_name . '_set_location_cookie_time') ?>" name="<?php esc_attr_e($this->option_name . '_set_location_cookie_time') ?>" value="<?php echo $locationCookieTime; ?>">
+      <input type="number" id="<?php esc_attr_e($this->option_name . '_set_location_cookie_time') ?>" name="<?php esc_attr_e($this->option_name . '_set_location_cookie_time') ?>" value="<?php echo $locationCookieTime; ?>">
       <br>
-      <?php echo '<label class="wcmlim-setting-option-des">' . __('The default cookie time is 30.<br/>Extend the default cookie time in your browser <b>Note - Entered value considerd in days</b>', 'wcmlim') . '</label>'; ?>
+      <?php echo '<label class="wcmlim-setting-option-des">' . __('Extend the default cookie time in your browser <b>Note - Entered value considerd in days</b>', 'wcmlim') . '</label>'; ?>
     <?php
     }
 
@@ -2022,24 +1960,6 @@ class Wcmlim_Admin
     }
 
     /**
-     * *callback function for wcpos
-     *
-     * @since    3.1.1
-     */
-
-    public function wcmlim_wc_pos_compatibility_callback()
-    {
-      $wc_pos_compatiblity = get_option($this->option_name . '_wc_pos_compatiblity');
-      ?>
-      <label class="switch">
-        <input type="checkbox" id="<?php esc_attr_e($this->option_name . '_wc_pos_compatiblity') ?>" name="<?php esc_attr_e($this->option_name . '_wc_pos_compatiblity') ?>" <?php echo ($wc_pos_compatiblity == 'on') ? 'checked="checked"' : ''; ?>>
-        <span class="slider round"></span>
-      </label>
-      <br />
-      <?php
-    }
-
-    /**
      * *callback function for enable default location
      *
      * @since    1.2.5
@@ -2093,9 +2013,8 @@ class Wcmlim_Admin
       <span class="slider round"></span>
     </label>
     <br>
-    <?php echo '<label class="wcmlim-setting-option-des">' . __('If you enable you are able to set radius to each location', 'wcmlim') . '</label>'; ?>
-    <a href="admin.php?page=wcmlim-display-settings"> Click Here</a> Make Sure Distance unit has been selected.
- <?php
+    <?php echo '<label class="wcmlim-setting-option-des">' . __('if you enable you are able to set radius to each location', 'wcmlim') . '</label>'; ?>
+  <?php
   }
   /**
    * Callback function for location group
@@ -2112,7 +2031,7 @@ class Wcmlim_Admin
       <span class="slider round"></span>
     </label>
     <br>
-    <?php echo '<label class="wcmlim-setting-option-des">' . __('If you enable you can find map to each location', 'wcmlim') . '</label>'; ?>
+    <?php echo '<label class="wcmlim-setting-option-des">' . __('if you enable you can find map to each location', 'wcmlim') . '</label>'; ?>
   <?php
   }
 
@@ -2131,7 +2050,7 @@ class Wcmlim_Admin
       <span class="slider round"></span>
     </label>
     <br>
-    <?php echo '<label class="wcmlim-setting-option-des">' . __('If you enable you are able to set location groups', 'wcmlim') . '</label>'; ?>
+    <?php echo '<label class="wcmlim-setting-option-des">' . __('if you enable you are able to set location groups', 'wcmlim') . '</label>'; ?>
   <?php
   }
   
@@ -2150,7 +2069,7 @@ class Wcmlim_Admin
       <span class="slider round"></span>
     </label>
     <br>
-    <?php echo '<label class="wcmlim-setting-option-des">' . __('If you enable we force visitors to select location first', 'wcmlim') . '</label>'; ?>
+    <?php echo '<label class="wcmlim-setting-option-des">' . __('if you enable we force visitors to select location first', 'wcmlim') . '</label>'; ?>
   <?php
   }
 
@@ -2163,10 +2082,6 @@ class Wcmlim_Admin
     public function wcmlim_order_fulfilment_rules_callback()
     {
       $fulfilment_rule = get_option("wcmlim_order_fulfilment_rules");
-      if($fulfilment_rule == "nearby_instock")
-      {
-        $fulfilment_rule = "clcsadd";
-      }
     ?>
       <select name="<?php esc_attr_e($this->option_name . '_order_fulfilment_rules') ?>" id="<?php esc_attr_e($this->option_name . '_order_fulfilment_rules') ?>">
         <option value="default"><?php _e('Please select rule', 'wcmlim'); ?></option>
@@ -2183,12 +2098,12 @@ class Wcmlim_Admin
 
        <option value="shipping_loc" <?php if ($fulfilment_rule == 'shipping_loc') {
                                       echo "selected='selected'";
-                                    } ?>><?php _e('Location as per Shipping Zones', 'wcmlim'); ?></option>                           
+                                    } ?>><?php _e('Location as per Shipping Zones', 'wcmlim'); ?></option>
 
       </select>
     <?php echo '<label class="wcmlim-setting-option-des">' . __('<b>Rule description : </b><br>
     <b> 0. None selected rule :</b> For administration manually adding order, Location list dropdown under each item.<br>
-    <b> 1.</b> <b>Location with most inventory in stock :</b> The location is automatically chosen with availability of most number of stock .<br><b>2.</b> <b>Closest location to Customers shipping address :</b> The location that is closest to the shipping address is automatically selected, even if the order is placed from a different location. <br><b> 3.</b> <b>Location as per priority in stock:</b> Assign location as per priority set and availability stock is automatically chosen. <br> <b> 4. Location as per Shipping Zones : </b> The location belonging to the shipping zone from the order is automatically selected.<br>', 'wcmlim') . '</label>'; ?>
+    <b> 1.</b> <b>Location with most inventory in stock :</b> The location is automatically chosen with availability of most number of stock .<br><b>2.</b> <b>Closest location to Customers shipping address :</b> The location that is closest to the shipping address is automatically selected, even if the order is placed from a different location. <br><b> 3.</b> <b>Location as per priority in stock:</b> Assign location as per priority set and availability stock is automatically chosen. <br> <b> 4. Location as per Shipping Zones : </b> The location belonging to the shipping zone from the order is automatically selected.', 'wcmlim') . '</label>'; ?>
     <?php
     }
 
@@ -2201,10 +2116,6 @@ class Wcmlim_Admin
 
     public function wcmlim_allow_local_pickup_callback()
     {
-      if (in_array('local-pickup-for-woocommerce/local-pickup.php', apply_filters('active_plugins', get_option('active_plugins'))) ||  is_array(get_site_option('active_sitewide_plugins')) && !array_key_exists('local-pickup-for-woocommerce/local-pickup.php', get_site_option('active_sitewide_plugins'))) 
-        {
-          update_option($this->option_name . '_allow_local_pickup','');
-        }
       $allow_local_pickup = get_option($this->option_name . '_allow_local_pickup');
     ?>
       <label class="switch">
@@ -2213,9 +2124,6 @@ class Wcmlim_Admin
       </label>
       <br />
       <?php echo '<label class="wcmlim-setting-option-des">' . __('Turning on this switch will allow Local Pickup Address details on frontend & if Backend Mode is enabled it will show a Dropdwon of Locations if Pickup Location Shipping Method is selected.', 'wcmlim') . '</label>'; ?>
-      <a href="https://codecanyon.net/item/local-pickup-for-woocommerce/34768481?s_rank=1"> Click Here</a> To Download the Local Pickup for WooCommerce – Pickup Location, Date & Time Slots.
-
-
     <?php
     }
     
@@ -2238,24 +2146,6 @@ class Wcmlim_Admin
     <?php
     }
 
-        /**
-     * *callback function for enable tax for each item
-     *
-     * @since    1.1.8
-     */
-
-    public function wcmlim_enable_tax_to_each_item_callback()
-    {
-      $allow_tax_location = get_option($this->option_name . '_enable_tax_to_each_item');
-    ?>
-      <label class="switch">
-        <input type="checkbox" id="<?php esc_attr_e($this->option_name . '_enable_tax_to_each_item') ?>" name="<?php esc_attr_e($this->option_name . '_enable_tax_to_each_item') ?>" <?php echo ($allow_tax_location == 'on') ? 'checked="checked"' : ''; ?>>
-        <span class="slider round"></span>
-      </label>
-      <br />
-      <?php echo '<label class="wcmlim-setting-option-des">' . __('Turning on this switch will allow to select set WC Tax For Each Line Item.', 'wcmlim') . '</label>'; ?>
-    <?php
-    }
 
     /**
      * *callback function for next closest location
@@ -2272,24 +2162,6 @@ class Wcmlim_Admin
       </label>
       <br />
       <?php echo '<label class="wcmlim-setting-option-des">' . __('When enabled, the next in stock location will be shown if the current location has out of stock', 'wcmlim') . '</label>'; ?>
-    <?php
-    }
-
-     /**
-     * *callback function or distance calculator by coordinates
-     *
-     * @since    3.1.2
-     */
-    public function wcmlim_distance_calculator_by_coordinates_callback()
-    {
-      $distMatCalc = get_option($this->option_name . '_distance_calculator_by_coordinates');
-    ?>
-      <label class="switch">
-        <input type="checkbox" id="<?php esc_attr_e($this->option_name . '_distance_calculator_by_coordinates') ?>" name="<?php esc_attr_e($this->option_name . '_distance_calculator_by_coordinates') ?>" <?php echo ($distMatCalc == 'on') ? 'checked="checked"' : ''; ?>>
-        <span class="slider round"></span>
-      </label>
-      <br />
-      <?php echo '<label class="wcmlim-setting-option-des">' . __('If we enable Calculate Distance by co-ordinates. In this s case, Latitude and longitude are calculated based on the selected address.This setting is used for Nearby Location finder.', 'wcmlim') . '</label>'; ?>
     <?php
     }
 
@@ -2463,7 +2335,7 @@ class Wcmlim_Admin
     public function wcmlim_order_fulfil_edit_callback()
     {
       $order_fulfil_edit = get_option($this->option_name . '_order_fulfil_edit');
-      ?>
+    ?>
       <label class="switch">
         <input type="checkbox" id="<?php esc_attr_e($this->option_name . '_order_fulfil_edit') ?>" name="<?php esc_attr_e($this->option_name . '_order_fulfil_edit') ?>" <?php echo ($order_fulfil_edit == 'on') ? 'checked="checked"' : ''; ?>>
         <span class="slider round"></span>
@@ -2686,7 +2558,7 @@ class Wcmlim_Admin
         <span class="slider round"></span>
       </label>
       <br />
-      <?php echo '<label class="wcmlim-setting-option-des">' . __('Please enable if you want to disable plugins css for frontend, and use custom css', 'wcmlim') . '</label>'; ?>
+      <?php echo '<label class="wcmlim-setting-option-des">' . __('Enable this to used your own custom css', 'wcmlim') . '</label>'; ?>
     <?php
     }
     /**
@@ -2740,9 +2612,6 @@ class Wcmlim_Admin
         <?php } ?>
       </select>
       <br />
-       <!-- Add Validation to "Exclude all locations" settings - User should not able to exclude all locations -code init -->
-       <p class="exclude_prod_onfront"></p>
-      <!-- Add Validation to "Exclude all locations" settings - User should not able to exclude all locations -code init -->
       <?php echo '<label class="wcmlim-setting-option-des">' . __('The selected location will be hidden from location dropdown in frontend', 'wcmlim') . '</label>'; ?>
       <?php
     }
@@ -2771,10 +2640,6 @@ class Wcmlim_Admin
         <?php } ?>
       </select>
       <br />
-       <!-- Add Validation to "Exclude all locations group" settings - User should not able to exclude all locations -code init -->
-       <p class="exclude_prodg_onfront"></p>
-      <!-- Add Validation to "Exclude all locations group" settings - User should not able to exclude all locations -code init -->
-      
       <?php echo '<label class="wcmlim-setting-option-des">' . __('The selected location will be hidden from location dropdown in frontend', 'wcmlim') . '</label>'; ?>
       <?php
     }
@@ -2788,18 +2653,18 @@ class Wcmlim_Admin
 	public function wcmlim_show_in_popup_cb()
 	{
 		$locationInPopup = get_option($this->option_name . '_show_in_popup');
+		
 	  ?> 
-	<label for="wcmlim_show_in_popup_select">
-    <input type="checkbox" name="<?php esc_attr_e($this->option_name . '_show_in_popup[]') ?>" id="wcmlim_show_in_popup_select" value="location_dropdown_in_popup" <?php echo (!empty($locationInPopup) && is_array($locationInPopup) && in_array('location_dropdown_in_popup',$locationInPopup) ) ? 'checked="checked"' : ''; ?> />
+		<label for="wcmlim_show_in_popup_select">
+		  <input type="radio" name="<?php esc_attr_e($this->option_name . '_show_in_popup') ?>" id="wcmlim_show_in_popup_select" value="select" <?php echo ($locationInPopup == 'select') ? 'checked="checked"' : ''; ?> />
+		  <?php echo __('Location dropdown', 'wcmlim'); ?>
+		</label>
 
-         
-         <?php echo __('Location dropdown', 'wcmlim'); ?>
-        </label>
-
-        <label for="wcmlim_show_in_popup_input">
-    <input type="checkbox" name="<?php esc_attr_e($this->option_name . '_show_in_popup[]') ?>" id="wcmlim_show_in_popup_select" value="location_finder_in_popup" <?php echo (!empty($locationInPopup) && is_array($locationInPopup) && in_array('location_finder_in_popup',$locationInPopup) ) ? 'checked="checked"' : ''; ?> />
-          <?php echo __('Nearby location Finder', 'wcmlim'); ?>
-        </label>
+		<label for="wcmlim_show_in_popup_input">
+		  <input type="radio" name="<?php esc_attr_e($this->option_name . '_show_in_popup') ?>" id="wcmlim_show_in_popup_input" value="input" <?php echo ($locationInPopup == 'input') ? 'checked="checked"' : ''; ?> />
+		  <?php echo __('Nearby location Finder', 'wcmlim'); ?>
+		</label>
+		
 	  <?php
 	}
 
@@ -2903,39 +2768,6 @@ class Wcmlim_Admin
       }
     }
 
-    public function wcmlim_populate_stock_column($column_name)
-    {
-      if ($column_name == 'is_in_stock') {
-        $isExcludeLocation = get_option("wcmlim_exclude_locations_from_frontend");
-									if (!empty($isExcludeLocation)) {
-										$terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0, 'exclude' => $isExcludeLocation));
-									} else {
-										$terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
-									}
-        $p_id = get_the_ID();
-        $product = wc_get_product($p_id);        
-        $text = get_post_meta($p_id, '_stock_status', true);
-        $count=0;
-        if ($product->is_type("variable")) {
-          $variations = $product->get_available_variations();
-
-            foreach ($terms as $k => $term) {
-              foreach ($variations as $key => $value) {
-                $check_taxanomy_variable = '';
-                $check_taxanomy_variable =  get_post_meta($value['variation_id'], "wcmlim_stock_at_{$term->term_id}", true);
-                if($check_taxanomy_variable!=''){
-                  $count = $count + 1;
-                }
-              }
-            }
-            if ($count > 0) {
-              update_post_meta($p_id, '_stock_status', 'instock');
-            } else {
-              update_post_meta($p_id, '_stock_status', 'outofstock');
-            } 
-          }
-      }
-    }
     /**
      * Returns new Location Price coloumn.
      *
@@ -3238,33 +3070,23 @@ class Wcmlim_Admin
         echo '</select>';
       }
     }
-public function wcmlim_sync_on_product_save( $meta_id, $post_id, $meta_key, $meta_value ) {
-  if ( $meta_key == '_edit_lock') { // we've been editing the post
-      if ( get_post_type( $post_id ) == 'product' ) { // we've been editing a product
-          $product = wc_get_product( $post_id );
-          $terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false));
-        $all_stock = 0;
-      foreach ($terms as $term) {
-        $term_id = $term->term_id;
-        $location_stock = get_post_meta($post_id,  "wcmlim_stock_at_{$term->term_id}", true); 
-      $all_stock= $all_stock + (int)$location_stock; 
-     
-      }
-      $manage_stock = get_post_meta($post_id, '_manage_stock', true);
-       if($manage_stock)
-      {
-      update_post_meta($post_id, '_stock', $all_stock);
-      }
-      else 
-      {
-		// $resetTerms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false));
-		// foreach ($resetTerms as $rT) {
-		// 	update_post_meta($post_id, "wcmlim_stock_at_{$rT->term_id}", 0);
-		// }
-      return;
-      }    
-      }
+
+    //Count column for simple and variable products
+    public function add_locations_columns( $columns ) {
+      $columns['product_count'] = 'Count';
+      return $columns;
   }
+     public function wcmlim_add_locations_column_content($content,$column_name,$term_id){
+    switch ($column_name) {
+        case 'product_count':
+              global $wpdb;
+              $prefix=$wpdb->prefix . 'postmeta';
+              $result= $wpdb->get_var("SELECT COUNT(*) FROM `$prefix` WHERE `meta_key` LIKE 'wcmlim_stock_at_{$term_id}' and meta_value!='0' and meta_value!='' ");
+              break;
+        default:
+            break;
+    }
+    return $result;
 }
     // Custom function where metakeys / labels pairs are defined
     public function wcmlim_get_filter_shop_order_meta($domain = 'woocommerce')
@@ -3276,7 +3098,7 @@ public function wcmlim_sync_on_product_save( $meta_id, $post_id, $meta_key, $met
         // Retrieve taxonomy data
         $taxonomy_name = 'locations';
         // Retrieve taxonomy terms
-        $terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
+        $terms = get_terms($taxonomy_slug, array('parent' => 0));
 
         foreach ($terms as $term) {
           $wordCount = explode(" ", $term->name);
@@ -3316,7 +3138,8 @@ public function wcmlim_sync_on_product_save( $meta_id, $post_id, $meta_key, $met
             // Retrieve taxonomy data
             $taxonomy_name = 'locations';
             // Retrieve taxonomy terms
-            $terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
+            $terms = get_terms($taxonomy_slug, array('parent' => 0));
+
             foreach ($terms as $term) {
               $wordCount = explode(" ", $term->name);
               if (count($wordCount) > 1) {
@@ -3400,6 +3223,7 @@ public function wcmlim_sync_on_product_save( $meta_id, $post_id, $meta_key, $met
       }
       $ui = isset($userID) ? $userID : "";
       $selected_location = get_user_meta($ui, 'wcmlim_user_specific_location', true);
+
       $locations_list = $this->wcmlim_get_all_locations();
       if (sizeof($locations_list) > 0) {
       ?>
@@ -3590,16 +3414,14 @@ public function wcmlim_sync_on_product_save( $meta_id, $post_id, $meta_key, $met
 
     public function wcmlim_order_restrict()
     { 
-       /** Restrict Regional and Shop Manager to view another location order */     
-       $cuser = wp_get_current_user();
-       $cuserId = $cuser->ID;
-       $cuserRoles = $cuser->roles; 
-       if (in_array("location_shop_manager", $cuserRoles) || in_array("location_regional_manager", $cuserRoles))
-       {
+       /** Restrict Regional and Shop Manager to view another location order */      
        if (isset($_GET['post']) ) {        
        $orderid = $_GET['post'];  
        $order_type = get_post_type( $orderid ); 
-          if ( $order_type == "shop_order" ) {       
+          if ( $order_type == "shop_order" ) {  
+             $cuser = wp_get_current_user();
+             $cuserId = $cuser->ID;
+             $cuserRoles = $cuser->roles;      
              $order = new WC_Order($orderid);      
              if ( $order && ! in_array("administrator", $cuserRoles) ) {         
                 $url = admin_url('edit.php?post_type=shop_order');                     
@@ -3659,7 +3481,6 @@ public function wcmlim_sync_on_product_save( $meta_id, $post_id, $meta_key, $met
           }
        } // Isset post      
     }
-  }
 
     /**
      * Ajax callback function for 
@@ -3676,9 +3497,10 @@ public function wcmlim_sync_on_product_save( $meta_id, $post_id, $meta_key, $met
       $product = wc_get_product( $product_id );
       update_post_meta($product_id, 'wcmlim_stock_at_'.$location_id, $location_stock);
       $total = 0;
+      //$locations = wp_get_post_terms($product->get_id(), 'locations', array('parent' => 0));
       $locations = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false));
       foreach ($locations as $location) {
-        $total +=  intval(get_post_meta($product_id, "wcmlim_stock_at_{$location->term_id}", true));
+        $total +=  get_post_meta($product_id, "wcmlim_stock_at_{$location->term_id}", true);
       }        
       update_post_meta($product_id, '_stock', $total);
       if ($total > 0) {
@@ -4092,6 +3914,9 @@ public function wcmlim_sync_on_product_save( $meta_id, $post_id, $meta_key, $met
       <p><?php echo __('Hex color for button Background color', 'wcmlim'); ?></p><br>
       <?php
       $button_txt_color = get_option($this->option_name . '_oncheck_button_text_color');
+      /* if ($button_txt_color  == false) {
+        update_option($this->option_name . '_oncheck_button_text_color', '#ffffff');
+      }*/
       ?><p><strong><?php echo __('Text Color', 'wcmlim'); ?></strong></p>
       <input class="color_field" type="text" id="<?php esc_attr_e($this->option_name . '_oncheck_button_text_color'); ?>" name="<?php esc_attr_e($this->option_name . '_oncheck_button_text_color'); ?>" value="<?php esc_attr_e($button_txt_color); ?>" />
       <p><?php echo __('Hex color for check button text color', 'wcmlim'); ?></p>
@@ -4291,18 +4116,6 @@ public function wcmlim_sync_on_product_save( $meta_id, $post_id, $meta_key, $met
       <p><?php echo __('Enter digit support px', 'wcmlim'); ?></p> <br>
       <hr>
   <?php
-    }
-
-    public function wcmlim_onbackorder_button_text_cb(){
-
-      $backorder_text = get_option($this->option_name . '_onbackorder_button_text');
-      if ($backorder_text  == false) {
-        update_option($this->option_name . '_onbackorder_button_text', 'On backorder');
-      }
-    ?><p><strong><?php echo __('Label', 'wcmlim'); ?></strong></p>
-      <input type="text" name="<?php esc_attr_e($this->option_name . '_onbackorder_button_text'); ?>" id="<?php esc_attr_e($this->option_name . '_onbackorder_button_text'); ?>" value="<?php esc_attr_e($backorder_text); ?>">
-      <p><?php echo __('On backorder button text to appear', 'wcmlim'); ?></p><br>
-<?php
     }
 
     /**
@@ -4572,16 +4385,7 @@ public function wcmlim_sync_on_product_save( $meta_id, $post_id, $meta_key, $met
 
           $locations_list = $this->wcmlim_get_all_locations();
 ?>
-  <select name="bulk_default_selection" id="bulk_default_selection" style="float:none;max-width:fit-content;display:<?php
-  $default_location = get_option( 'wcmlim_enable_default_location ');
-  if($default_location == 'on'){
-    echo '';
-  }
-    else{
-      echo 'none';
-    
-  }
-  ?>">
+  <select name="bulk_default_selection" id="bulk_default_selection" style="float:none;max-width:fit-content">
     <option value="-1"><?php _e('Change default location to...', 'wcmlim'); ?></option>
     <?php
       if (sizeof($locations_list) > 0) {
@@ -4624,37 +4428,22 @@ public function wcmlim_sync_on_product_save( $meta_id, $post_id, $meta_key, $met
       if ($_POST['type'] == "product") {
         $product_ids = isset($_POST['productids']) ? intval($_POST['productids']) : "";
         $new_pvalue = isset($_POST['selected']) ? intval($_POST['selected']) : "";
-        $prepare_val = '';
-        $isExcLoc = get_option("wcmlim_exclude_locations_from_frontend");
-        if (!empty($isExcLoc)) {
-          $terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0, 'exclude' => $isExcLoc));
-        } else {
-          $terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
-        }
-        foreach ($terms as $in => $term) {
-          $termid = $term->term_id;
-          if($termid == $new_pvalue)
-          {
-            $prepare_val = "loc_$in";
 
-          }
-        }
-        $new_pvalue = $prepare_val;
         $product = wc_get_product($product_ids);
         if ($product->is_type("simple")) {
-          update_post_meta($product_ids, "wcmlim_default_location", $new_pvalue);
-          if ($new_pvalue != get_post_meta($product_ids,  'wcmlim_default_location', true)) {
+          update_post_meta($product_ids, "_default_location", $new_pvalue);
+          if ($new_pvalue != get_post_meta($product_ids,  '_default_location', true)) {
             echo "fail";
           } else {
             echo "success";
           }
         } elseif ($product->is_type("variable")) {
-          update_post_meta($product_ids, "wcmlim_default_location", $new_pvalue);
+          update_post_meta($product_ids, "_default_location", $new_pvalue);
           $variations = $product->get_available_variations();
           $variations_id = wp_list_pluck($variations, 'variation_id');
           foreach ($variations_id as $vid) {
-            update_post_meta($vid, "wcmlim_default_location", $new_pvalue);
-            if ($new_pvalue != get_post_meta($vid,  'wcmlim_default_location', true)) {
+            update_post_meta($vid, "_default_location", $new_pvalue);
+            if ($new_pvalue != get_post_meta($vid,  '_default_location', true)) {
               $smg = "fail";
             } else {
               $smg = "success";
@@ -4662,8 +4451,8 @@ public function wcmlim_sync_on_product_save( $meta_id, $post_id, $meta_key, $met
           }
           echo $smg;
         } else {
-          update_post_meta($product_ids, "wcmlim_default_location", $new_pvalue);
-          if ($new_pvalue != get_post_meta($product_ids,  'wcmlim_default_location', true)) {
+          update_post_meta($product_ids, "_default_location", $new_pvalue);
+          if ($new_pvalue != get_post_meta($product_ids,  '_default_location', true)) {
             echo "fail";
           } else {
             echo "success";
@@ -4727,9 +4516,6 @@ public function wcmlim_sync_on_product_save( $meta_id, $post_id, $meta_key, $met
           <option value="scroll" <?php if ($showformat == 'scroll') {
                                           echo "selected='selected'";
                                         } ?>><?php _e('Scroll View', 'wcmlim'); ?></option>
-          <option value="advanced_list_view" <?php if ($showformat == 'advanced_list_view') {
-                                          echo "selected='selected'";
-                                        } ?>><?php _e('Adv. List View', 'wcmlim'); ?></option>
   
         </select>
         <?php echo '<label class="wcmlim-setting-option-des">' . __('Select one of the options for format grid or scroll view on location listing options. <b>Default -> One Column selected</b>', 'wcmlim') . '</label>'; ?>
@@ -4761,7 +4547,6 @@ public function wcmlim_sync_on_product_save( $meta_id, $post_id, $meta_key, $met
   */
   public function wcmlim_product_updated()
   {
-    
     if (!empty($_POST)) {
       $inp_value = $_POST['inp_value'];
       $data_id = $_POST['data-id'];
@@ -4776,13 +4561,10 @@ public function wcmlim_sync_on_product_save( $meta_id, $post_id, $meta_key, $met
       if ($data_name == "stckup_product_stock_at_location") {
         $data_location = $_POST['data-location'];  
         update_post_meta($data_id, 'wcmlim_stock_at_' . $data_location, $inp_value);
-        wp_update_post([
-          'ID' => $data_id,
-        ]);
         $terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
         $arr_stock = array();
         foreach ($terms as $key => $value) {
-          $loc_stock_val = intval(get_post_meta( $data_id, "wcmlim_stock_at_{$value->term_id}" , true ));
+          $loc_stock_val = (int)get_post_meta( $data_id, "wcmlim_stock_at_{$value->term_id}" , true );
           array_push($arr_stock, $loc_stock_val);
           $total_stock_qty = array_sum($arr_stock);
         }
@@ -4802,51 +4584,20 @@ public function wcmlim_sync_on_product_save( $meta_id, $post_id, $meta_key, $met
         wc_delete_product_transients( $data_id );
       }
       if ($data_name == "stckup_product_sale_price") {
-        $chk_val = get_post_meta($data_id, '_regular_price', true); 
-        if($chk_val > $inp_value){
-          if ($inp_value != null || $inp_value != false) {
-            update_post_meta($data_id, '_price', $inp_value);
-            update_post_meta($data_id, '_sale_price', $inp_value);
-          } else {
-            $chk_v = get_post_meta($data_id, '_regular_price', true); 
-            update_post_meta($data_id, '_price', $chk_v);
-          } 
-        }else {
-          update_post_meta($data_id, '_sale_price','--');
-        }
-        
+        update_post_meta($data_id, '_sale_price', $inp_value);
+        if ($inp_value != null || $inp_value != false) {
+          update_post_meta($data_id, '_price', $inp_value);
+        } else {
+          $chk_v = get_post_meta($data_id, '_regular_price', true); 
+          update_post_meta($data_id, '_price', $chk_v);
+        }       
         wc_delete_product_transients( $data_id );
-        $updatestatus=1;
-        echo json_encode($updatestatus);
-        die();
       }      
       if ($data_name == "stckup_product_stock_status") {
         update_post_meta($data_id, '_stock_status', $inp_value);
-        $data_pid = isset($_POST['data-pid']) ? $_POST['data-pid'] : '';
-        if($data_pid) {
-          $product = wc_get_product($data_pid);
-          if(!empty($product) && $product->is_type( 'variable' )) {
-            $stock_status = array();
-            $variations = $product->get_available_variations();
-            $variations_id = wp_list_pluck($variations, 'variation_id');
-            if (!empty($variations_id)) {
-              foreach ($variations_id as $varid) {               
-                $stock_status[] = get_post_meta($varid, '_stock_status', true);	                
-              }
-            }           
-            if(in_array("instock", $stock_status)) {
-              update_post_meta($data_pid, '_stock_status', 'instock');
-            } else {
-              update_post_meta($data_pid, '_stock_status', 'outofstock');
-            }
-          }
-        }       
       }
       if ($data_name == "product_stock_manage") {
         update_post_meta($data_id, '_manage_stock', $inp_value);
-        wp_update_post([
-          'ID' => $data_id,
-        ]);
       }
       if ($data_name == "stckup_product_short_description") {
         wp_update_post([
@@ -4939,190 +4690,20 @@ public function wcmlim_sync_on_product_save( $meta_id, $post_id, $meta_key, $met
            
             }
             echo json_encode($methods);
+       //     print_r(array_merge($methods));
         }
 
     wp_die();
   }
 
-  public function support_validator_admin_notice() {  
-	  $wcmlim_validte = get_option('wcmlim_license', true);
-	  if($wcmlim_validte != 'invalid')
-	  {		 
-      $user = wp_get_current_user();
-      $buyer_email = $user->user_email;
-      $purchase_code = get_option('purchase_code');
-      $purchase_username = get_option('purchase_username');
-      @update_option('date', $date);
-      $url = get_site_url();
-      $domain_str = parse_url($url, PHP_URL_HOST);
-      $domain = str_replace('www.', '', $domain_str);
-      if(!function_exists('wp_get_current_user')) {
-        include(ABSPATH . "wp-includes/pluggable.php"); 
-      }
-      $json_array = array(
-        "purchase_code" => $purchase_code,
-        "purchase_username" => $purchase_username,
-        "domain" => $domain,
-        "email" => $purchase_username
-      );
-      $json_format = json_encode($json_array);
-
-      $curl = curl_init();
-      curl_setopt_array($curl, array(
-      CURLOPT_URL => "https://verify.techspawn.com/wp-json/my-route/support/",
-      CURLOPT_RETURNTRANSFER => true,
-      CURLOPT_ENCODING => "",
-      CURLOPT_MAXREDIRS => 10,
-      CURLOPT_TIMEOUT => 30,
-      CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-      CURLOPT_CUSTOMREQUEST => "POST",
-      CURLOPT_POSTFIELDS => $json_format,
-      CURLOPT_HTTPHEADER => array(
-      "accept: application/json",
-      "content-type: application/json"
-      ),
-      ));
-
-      $response = curl_exec($curl);
-      $err = curl_error($curl);
-      curl_close($curl);
-
-      if ($err) {
-        echo "cURL Error #:" . $err;
-      } else {
-        $response;
-      }
-      $response_arr = json_decode($response);      
-      if (isset($response_arr->result) && $response_arr->result == 1) {
-        $result = $response_arr->message;
-        $supported_until = $response_arr->supported_until;
-        $supported_until = date("d-m-Y", strtotime($supported_until));
-        $now = time(); // or your date as well
-        $support_date = strtotime($response_arr->supported_until);
-        $datediff = $support_date - $now;
-        $difffound =  round($datediff / (60 * 60 * 24));
-        if (strpos($difffound, '-') !== false) {
-            ?>
-            <div class="notice notice-error is-dismissible">
-            <p>
-              Your support for <b><?php echo $response_arr->product; ?></b> has been expired, please <a href ="<?php echo $response_arr->url; ?>">Click here to renew your support</a>
-            </p>
-          </div>
-            <?php
-        }
-        else
-        {
-          if($difffound < 8)
-          {
-            ?>
-          <div class="notice notice-warning is-dismissible">
-            <p>
-            Your support for <b><?php echo $response_arr->product; ?></b> expires in <b><?php echo $difffound; ?> Days</b>, please <a href ="<?php echo $response_arr->url; ?>">Click here to renew your support</a>
-            </p>
-          </div>
-          <?php
-          }
-        }
-        update_option('wcmlim_license', "valid");  
-      }
-      else 
-      {
-        ?>
-        <div class="notice notice-error is-dismissible">
-        <p><?php        
-        if (isset($response_arr->error_message)) {
-          echo $response_arr->message; 
-        }
-        ?></p>
-        </div>
-        <?php
-        update_option('wcmlim_license', "invalid");            
-      }      
-    }
+  public function support_validator_admin_notice() {
+    return;
   }
   public function wcmlim_deactivate_plugin()
   {
     $deactivate_url= plugin_dir_path(__FILE__) . 'includes/class-wcmlim-deactivator.php';
     deactivate_plugins( '/WooCommerce-Multi-Locations-Inventory-Management/wcmlim.php' ); 
   }
-
-   /**
-   * Callback function for getting lat lng once
-   * 
-   * @since 1.2.14
-   */
-
-   
-public function wcmlim_get_lcpriority(){
-  $lcpriority = $_POST['lcpriority'];
-  $skip_location = $_POST['skip_location'];
-    $terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => 0));
-    
-    $return_status = 0;
-    foreach($terms as $term){
-      $term_id = $term->term_id;
-     if($skip_location != $term_id)
-     {
-      $cvalterm = get_term_meta($term_id, 'wcmlim_location_priority', true); // get priotity number
-
-      if(intval($lcpriority) == intval($cvalterm))
-          {
-            $return_status = 1;
-          }
-     }
-    }
-    echo $return_status; 
-    wp_die();
-  }
-
-
-
-
-  public function wcmlim_get_lat_lng(){
-
-    global $latlngarr;
-    $nonce = $_POST['security'];
-    if ( ! wp_verify_nonce( $nonce, 'mi-nonce' ) ) {
-        die( __( 'Security check', 'wcmlim' ) ); 
-    } else {
-        $wcmlim_autocomplete_address = $_POST['wcmlim_autocomplete_address'];
-
-        $address = str_replace(' ', '+', $wcmlim_autocomplete_address);
-        $address = str_replace(',', '+', $wcmlim_autocomplete_address);
-        $api_key = get_option('wcmlim_google_api_key');
-    $curl = curl_init();
-		curl_setopt_array($curl, array(
-			CURLOPT_URL => 'https://maps.googleapis.com/maps/api/geocode/json?address=' . urlencode($address) . '&sensor=false&key=' . $api_key,
-			CURLOPT_RETURNTRANSFER => true,
-			CURLOPT_ENCODING => "",
-			CURLOPT_MAXREDIRS => 10,
-			CURLOPT_TIMEOUT => 0,
-			CURLOPT_FOLLOWLOCATION => true,
-			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-			CURLOPT_CUSTOMREQUEST => "GET",
-		));
-		$geocode = curl_exec($curl);
-		$output = json_decode($geocode);
-    curl_close($curl);
-		if (isset($output->results[0]->geometry->location->lat)) {
-			$latitude = $output->results[0]->geometry->location->lat;
-			$longitude = $output->results[0]->geometry->location->lng;
-		} else {
-			$latitude = 0;
-			$longitude = 0;
-		}
-
-    $latlngarr = array(
-      'latitude'=>$latitude,
-      'longitude'=>$longitude
-    );
-    
-        }
-        echo json_encode($latlngarr);
-        wp_die();
-  }
-
-  
   public function admin_order_list_top_bar_button($which) 
   {
       global $typenow;  
@@ -5137,6 +4718,7 @@ public function wcmlim_get_lcpriority(){
   }
   public function wcmlim_submit_feedback()
   {
+    //print('hello');
     $selected_feedback_option= $_POST['selected_option'];
     $user_email_id= $_POST['UserEmail'];
     $domain= home_url();
@@ -5167,11 +4749,12 @@ public function wcmlim_get_lcpriority(){
             ),
           ));
           $response = curl_exec($curl);
+          //print($response);
           $err = curl_error($curl);
           curl_close($curl);           
           echo $response;
           die();
   }
 
+  
   }
-

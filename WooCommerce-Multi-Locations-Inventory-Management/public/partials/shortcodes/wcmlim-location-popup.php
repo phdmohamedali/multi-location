@@ -14,7 +14,11 @@ class Wcmlim_Location_Popup
 {
     public function __construct()
     {
+        $locationpopup = get_option('wcmlim_location_popup');
+        if($locationpopup == "on")
+        {
         add_shortcode('wcmlim_locations_popup', [$this, 'wcmlim_locations_popup_cb']);
+        }
         add_action('wp_enqueue_scripts', [$this, 'my_plugin_assets']);
         
         // *ajax call for force visitors to choose locations

@@ -93,7 +93,7 @@ class Wcmlim_Custom_Inventory_Fields
       echo '</div>';
     }
     echo '<div id="locationList" class="options_group">';
-    echo '<p><b>' . __('All Locations', 'wcmlim') . '</b></p>';
+    echo '<p><b>' . __('All Locations', 'wcmlim') . '</b><span class="description"> (Please enable locations widget to enter location stock)</span></p>';
     foreach ($terms as $term) {
       if(!function_exists('wp_get_current_user')) {
         include(ABSPATH . "wp-includes/pluggable.php"); 
@@ -113,7 +113,7 @@ class Wcmlim_Custom_Inventory_Fields
         echo '<div class="locationInner">';
 
       } elseif (current_user_can('administrator')) {
-        echo '<div class="locationInner">';
+        echo "<div class='locationInner' id='locationID_$term->term_id' value='$term->term_id'>";
       } else {
         echo '<div class="locationInner notManager">';
       }
@@ -134,7 +134,6 @@ class Wcmlim_Custom_Inventory_Fields
           'min' => "0",
         )
       ));
-
       $isParent = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false, 'parent' => $term->term_id));
       if (!empty($isParent)) {
         echo '<ol>';
@@ -216,6 +215,7 @@ class Wcmlim_Custom_Inventory_Fields
     $terms_total = count($terms);
 
     foreach ($terms as $term) {
+      
       if (isset($_POST['wcmlim_product_' . $post_id . '_location_id_' . $term->term_id])) {
 
         // Initiate counter
@@ -550,7 +550,7 @@ class Wcmlim_Custom_Inventory_Fields
       } elseif (in_array("location_regional_manager", $cuserRoles) && !empty($regM2) && in_array($cuserId, $regM2)) { 
         echo '<div class="locationInner">';
       } elseif (current_user_can('administrator')) {
-        echo '<div class="locationInner">';
+        echo "<div class='locationInner locationID_$term->term_id' id='locationID_$term->term_id' value='$term->term_id'>";
       } else {
         echo '<div class="locationInner notManager">';
       }
@@ -599,6 +599,7 @@ class Wcmlim_Custom_Inventory_Fields
         }
         echo '</ol>';
       }
+     
       $enable_price = get_option('wcmlim_enable_price');
       if ($enable_price == 'on') {
         woocommerce_wp_text_input(
@@ -705,6 +706,8 @@ class Wcmlim_Custom_Inventory_Fields
     $terms_total = count($terms);
 
     foreach ($terms as $term) {
+
+     
       if (isset($_POST["wcmlim_variation_{$variation_id}_location_id_{$term->term_id}"])) {
 
         // Initiate counter

@@ -133,3 +133,16 @@ margin-right: 10px;
   font-size: 18px;
     font-weight: 600;
 }
+
+input.wclimcol1{
+  display: none;
+}
+
+.woocommerce-variation-add-to-cart.variations_button button#list_view{
+  padding: 4px 18px!important;
+}
+
+button#list_view {
+  margin: 10px;
+  border-radius: 0!important;
+}

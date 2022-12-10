@@ -12,6 +12,6 @@ jQuery(document).ready(($) => {
         }
         var value = $("#wcmlim-change-lcselect").find(":selected").attr("data-lc-loc");
         var getdirection_link = "https://www.google.com/maps?saddr=&daddr=" + value;
-        $('<a id="wcmlim_get_direction_for_location" target="_blank" href="' + getdirection_link + '">Get Direction</a>').insertAfter(" #globMsg");
+        $('<a id="wcmlim_get_direction_for_location" target="_blank" href="' + getdirection_link + '">Get Direction</a>').insertAfter(" .Wcmlim_prefloc_sel");
     });
 });

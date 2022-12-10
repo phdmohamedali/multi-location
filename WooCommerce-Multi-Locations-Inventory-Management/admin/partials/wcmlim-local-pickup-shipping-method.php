@@ -447,6 +447,8 @@ function wcmlim_location_row_layout()
               $state = get_term_meta($term_id, 'wcmlim_administrative_area_level_1', true);
               $postal_code = get_term_meta($term_id, 'wcmlim_postal_code', true);
               $country = get_term_meta($term_id, 'wcmlim_country', true);
+              $email = get_term_meta($term_id, 'wcmlim_email', true);
+              $phone= get_term_meta($term_id, 'wcmlim_phone', true);
 			  $pickup = get_term_meta($term_id, 'wcmlim_allow_pickup', true);
 			  $isClearCart = get_option('wcmlim_clear_cart');
 			   $arrayloc = $streetNumber . " " . $locality . " " . $state . " " . $route;
@@ -466,6 +468,11 @@ function wcmlim_location_row_layout()
           $new_address .=  $postal_code.',';
          }if(!empty($country)){
           $new_address .=  $country;
+         }
+         if(!empty($email)){
+          $new_address .= ' '. "<br>"." <b>Email Address:</b> ". $email;
+         }if(!empty($phone)){
+          $new_address .= ' '. "<br>"." <b>Phone No:</b> ". $phone;
          }
          $cart_message = "<b>Product ".$product_obj_name." </b><br /> <small>Pickup Address for $term_name: </small>" . $new_address. "<br/>";
         if (!empty($cart_message)) {

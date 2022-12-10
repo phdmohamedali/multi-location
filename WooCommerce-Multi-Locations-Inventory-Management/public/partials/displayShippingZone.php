@@ -31,6 +31,7 @@ class Wcmlim_Display_Shipping_zone
         }
         else
         {
+            add_action('woocommerce_before_cart_contents', array($this, 'wcmlim_display_shipping_zones_locations_cartpage_load'));
             add_filter('woocommerce_package_rates', array($this, 'wcmlim_display_shipping_zones_locations'), 10, 2);
         }
     }
@@ -110,6 +111,7 @@ class Wcmlim_Display_Shipping_zone
         }
         return $rates;
     }
+
     public function wcmlim_display_shipping_zones_locations($available_methods)
     {
         global $woocommerce;
@@ -137,13 +139,14 @@ class Wcmlim_Display_Shipping_zone
                                 foreach ($available_methods as $shipping_method => $value) {
                                      $instance_id = $value->instance_id;
                                       if (!in_array($instance_id, $wcmlim_shipping_method)) {
-                                        unset($available_methods[$shipping_method]);  
+                                          unset($available_methods[$shipping_method]);  
                                     }else {
                                         $method_found = $method_found +1;
                                     }
 
                                 }
                                 if ($method_found == 0) {
+                                     wc_clear_notices();
                                      wc_add_notice("Cart item <b> $product_name </b> could not be delivered in shipping zone", "error");
                                 }
                             }
@@ -179,6 +182,14 @@ class Wcmlim_Display_Shipping_zone
         }
         return $found;
     }
-    
+
+    function wcmlim_display_shipping_zones_locations_cartpage_load(){
+        
+        $shipping_methods = WC()->shipping->get_shipping_methods();
+        $packages = WC()->shipping->get_packages();
+        $methods = $packages['0']['rates'];
+        $this->wcmlim_display_shipping_zones_locations($methods);
+    }
+
 }
 new Wcmlim_Display_Shipping_zone();

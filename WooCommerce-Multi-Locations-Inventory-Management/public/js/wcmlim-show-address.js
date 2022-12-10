@@ -25,7 +25,7 @@ jQuery(document).ready(function (c) {
                 }
                 "" != m && (d = d + "<br> <b>Email Address:</b> " + m),
                     "" != r && (d = d + "<br> <b>Phone No</b> - " + r),
-                    "" != d && jQuery(".local_pickup_address").html('<p class="local_pickup_address_html">' + d + "</p>"),
+                    "" != d && jQuery(".local_pickup_address").html('<p class="local_pickup_address_html"> <small>Pickup Address for '+ e +'</small> : ' + d + "</p>"),
                     void 0 == i && jQuery(".local_pickup_address").html('<p class="local_pickup_address_html"></p>'),
                     jQuery("body").trigger("update_checkout");
             },

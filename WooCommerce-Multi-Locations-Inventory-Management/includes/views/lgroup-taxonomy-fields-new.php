@@ -1,3 +1,7 @@
+<div class="form-field term-Regional-wrap">
+      <label class="" for="wcmlim_email_regmanager"><?php esc_html_e('Email', 'wcmlim'); ?></label>
+      <input class="form-control" id="wcmlim_email_regmanager" name="wcmlim_email_regmanager" type="text" /> 
+</div> 
 <?php $esp = get_option("wcmlim_assign_location_shop_manager");
 if ($esp == "on") { ?>
   <div class="form-field term-Regional-wrap">

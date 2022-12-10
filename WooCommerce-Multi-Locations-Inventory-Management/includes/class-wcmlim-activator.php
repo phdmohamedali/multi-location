@@ -135,13 +135,25 @@ class Wcmlim_Activator
 
 		// Added Options on plugin activation
 
-		$Values[] = array("id"=>"Show","thumbnail"=>"Show","name"=>"Show" ,"sku"=>"Show" ,"regular_price"=>"Show","sale_price"=>"Show" 
-		,"stock_quantity"=>"Show" ,"stock_status"=>"Show", "stock_at_location"=>"Show", "categories"=>"" , "tags"=>"" , "short_description"=>"" ,
-		"description"=>"", "type"=>"", "status"=>"", "parent"=>"", "catalog_visibility"=>"", "tax_status"=>"", "backorders"=>""
-		,"weight"=>"", "length"=>"", "width"=>"", "height"=>"" , "manage_stock"=>""  );
 
-		// $Values = serialize($Values);
-		update_option( 'ProductCentralControlOptions', $Values );
+global $wpdb;
+$options_table = $wpdb->prefix . 'options';                 
+$ProductCentralControlOptions = $wpdb->get_results($wpdb->prepare("SELECT * FROM `" . $options_table . "` WHERE `option_name`= '%s'", 'ProductCentralControlOptions'));
+$PCFO = maybe_unserialize($ProductCentralControlOptions[0]->option_value);
+ if(!empty($PCFO)){
+
+	$Values[] = array("id"=>"Show","thumbnail"=>"Show","name"=>"Show" ,"sku"=>"Show" ,"regular_price"=>"Show","sale_price"=>"Show" 
+,"stock_quantity"=>"Show" ,"stock_status"=>"Show", "stock_at_location"=>"Show", "categories"=>"" , "tags"=>"" , "short_description"=>"" ,
+"description"=>"", "type"=>"", "status"=>"", "parent"=>"", "catalog_visibility"=>"", "tax_status"=>"", "backorders"=>""
+,"weight"=>"", "length"=>"", "width"=>"", "height"=>"" , "manage_stock"=>""  );
+
+} else {
+$Values[] = array("id"=>"Show","thumbnail"=>"Show","name"=>"Show" ,"sku"=>"Show" ,"regular_price"=>"Show","sale_price"=>"Show" 
+,"stock_quantity"=>"Show" ,"stock_status"=>"Show", "stock_at_location"=>"Show", "categories"=>"" , "tags"=>"" , "short_description"=>"" ,
+"description"=>"", "type"=>"", "status"=>"", "parent"=>"", "catalog_visibility"=>"", "tax_status"=>"", "backorders"=>""
+,"weight"=>"", "length"=>"", "width"=>"", "height"=>"" , "manage_stock"=>""  );
+update_option( 'ProductCentralControlOptions', $Values );
+} 
 	}
 
 	private static function get_core_capabilities()
